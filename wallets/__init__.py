@@ -1,4 +1,9 @@
-"""Wallets Django app."""
+"""Public package exports for the reusable wallet module.
+
+Importing from ``wallets`` gives consumers access to the main service classes
+and domain exceptions without importing internal modules directly. The exports
+are resolved lazily so Django app loading remains safe.
+"""
 
 __all__ = [
 	"DuplicateWalletBeneficiaryError",
@@ -24,6 +29,17 @@ __all__ = [
 
 
 def __getattr__(name: str):
+	"""Resolve public package exports lazily.
+
+	Args:
+		name: Exported attribute requested from the ``wallets`` package.
+
+	Returns:
+		The corresponding service class or exception type.
+
+	Raises:
+		AttributeError: If ``name`` is not part of the public package API.
+	"""
 	if name in {
 		"WalletError",
 		"InvalidWalletAmountError",

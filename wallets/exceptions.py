@@ -1,13 +1,23 @@
+"""Domain-specific exceptions raised by the wallet service layer.
+
+Applications using this package are expected to catch these exceptions instead
+of relying on raw Django or database errors for business-rule failures.
+"""
+
 class WalletError(Exception):
-    """Base exception for wallet domain errors."""
+    """Base exception for wallet domain errors.
+
+    Catch this when you want one fallback handler for wallet-specific business
+    rule failures.
+    """
 
 
 class InvalidWalletAmountError(WalletError):
-    """Raised when an amount is invalid for a wallet operation."""
+    """Raised when an amount is missing, malformed, zero, or negative."""
 
 
 class InvalidWalletCurrencyError(WalletError):
-    """Raised when a wallet currency code is invalid."""
+    """Raised when a wallet currency code is not a valid 3-letter code."""
 
 
 class WalletOwnershipError(WalletError):
@@ -15,11 +25,11 @@ class WalletOwnershipError(WalletError):
 
 
 class InsufficientWalletBalanceError(WalletError):
-    """Raised when a wallet debit exceeds the available balance."""
+    """Raised when a debit or transfer exceeds the available wallet balance."""
 
 
 class InvalidWalletBeneficiaryError(WalletError):
-    """Raised when beneficiary input is invalid for a wallet."""
+    """Raised when beneficiary input is structurally valid but not allowed."""
 
 
 class DuplicateWalletBeneficiaryError(WalletError):
@@ -31,12 +41,12 @@ class WalletBeneficiaryNotFoundError(WalletError):
 
 
 class InvalidWalletTransferError(WalletError):
-    """Raised when a wallet transfer request is invalid."""
+    """Raised when transfer inputs are valid types but fail transfer rules."""
 
 
 class InvalidWalletSpendingLimitError(WalletError):
-    """Raised when a wallet spending limit configuration is invalid."""
+    """Raised when a spending-limit configuration is invalid or inconsistent."""
 
 
 class WalletSpendingLimitExceededError(WalletError):
-    """Raised when a spend request exceeds an active wallet spending limit."""
+    """Raised when an attempted spend exceeds an active spending rule."""
