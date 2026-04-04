@@ -1295,7 +1295,7 @@
 											"top": 543,
 											"width": 158.89794921875,
 											"height": 13,
-											"text": "WalletBenefiaryActivity"
+											"text": "WalletBeneficiaryActivity"
 										},
 										{
 											"_type": "LabelView",
@@ -3028,7 +3028,7 @@
 											"top": 866,
 											"width": 89.84814453125,
 											"height": 13,
-											"text": "PREFERENCE",
+											"text": "PERCENTAGE",
 											"horizontalAlignment": 0
 										}
 									],
@@ -6660,7 +6660,7 @@
 					"_parent": {
 						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
 					},
-					"name": "WalletBenefiaryActivity",
+					"name": "WalletBeneficiaryActivity",
 					"ownedElements": [
 						{
 							"_type": "UMLAssociation",
@@ -7086,7 +7086,7 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV/oD0iPtd38="
 							},
-							"name": "PREFERENCE"
+							"name": "PERCENTAGE"
 						}
 					]
 				},
