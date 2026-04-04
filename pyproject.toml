@@ -1,0 +1,23 @@
+[project]
+name = "wallet"
+version = "0.1.0"
+description = "Django wallet module with wallet models and services"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "django>=6.0.3",
+    "requests>=2.33.1",
+]
+
+[project.scripts]
+manage-wallet = "main:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main", "manage"]
+
+[tool.setuptools.packages.find]
+include = ["config*", "wallets*"]
