@@ -218,6 +218,24 @@
 										},
 										{
 											"_type": "UMLAttributeView",
+											"_id": "copilot-wallet-default-wallet-view",
+											"_parent": {
+												"$ref": "AAAAAAGdV9wPpw0gft0="
+											},
+											"model": {
+												"$ref": "copilot-wallet-default-wallet-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 533,
+											"top": 129,
+											"width": 175,
+											"height": 13,
+											"text": "+Boolean default_wallet",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
 											"_id": "AAAAAAGdV97YYA1tmAs=",
 											"_parent": {
 												"$ref": "AAAAAAGdV9wPpw0gft0="
@@ -228,7 +246,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 533,
-											"top": 129,
+											"top": 144,
 											"width": 175,
 											"height": 13,
 											"text": "+Boolean is_active",
@@ -246,7 +264,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 533,
-											"top": 144,
+											"top": 159,
 											"width": 175,
 											"height": 13,
 											"text": "+DateTime created_at",
@@ -264,7 +282,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 533,
-											"top": 159,
+											"top": 174,
 											"width": 175,
 											"height": 13,
 											"text": "+DateTime update_at",
@@ -276,7 +294,7 @@
 									"left": 528,
 									"top": 49,
 									"width": 185,
-									"height": 128
+									"height": 143
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -290,7 +308,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"left": 528,
-									"top": 177,
+									"top": 192,
 									"width": 185,
 									"height": 10
 								},
@@ -335,7 +353,7 @@
 							"left": 528,
 							"top": 24,
 							"width": 184,
-							"height": 176,
+							"height": 191,
 							"nameCompartment": {
 								"$ref": "AAAAAAGdV9wPpg0bHWA="
 							},
@@ -496,24 +514,6 @@
 										},
 										{
 											"_type": "UMLAttributeView",
-											"_id": "AAAAAAGdV+Kakg2/w4E=",
-											"_parent": {
-												"$ref": "AAAAAAGdV+D0EA2KZRI="
-											},
-											"model": {
-												"$ref": "AAAAAAGdV+Kagw289t8="
-											},
-											"font": "Arial;13;0",
-											"parentStyle": true,
-											"left": 533,
-											"top": 348,
-											"width": 183,
-											"height": 13,
-											"text": "+String beneficiary_user_id",
-											"horizontalAlignment": 0
-										},
-										{
-											"_type": "UMLAttributeView",
 											"_id": "AAAAAAGdV+LXDA3Gw+I=",
 											"_parent": {
 												"$ref": "AAAAAAGdV+D0EA2KZRI="
@@ -524,7 +524,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 533,
-											"top": 363,
+											"top": 348,
 											"width": 183,
 											"height": 13,
 											"text": "+String label",
@@ -542,7 +542,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 533,
-											"top": 378,
+											"top": 363,
 											"width": 183,
 											"height": 13,
 											"text": "+DateTime created_at",
@@ -554,7 +554,7 @@
 									"left": 528,
 									"top": 313,
 									"width": 193,
-									"height": 83
+									"height": 68
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -568,7 +568,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"left": 528,
-									"top": 396,
+									"top": 381,
 									"width": 193,
 									"height": 10
 								},
@@ -613,7 +613,7 @@
 							"left": 528,
 							"top": 288,
 							"width": 192,
-							"height": 118,
+							"height": 103,
 							"nameCompartment": {
 								"$ref": "AAAAAAGdV+D0EA2FxLc="
 							},
@@ -653,7 +653,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 636,
-									"top": 237,
+									"top": 244,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -675,7 +675,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 651,
-									"top": 237,
+									"top": 244,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -697,7 +697,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 607,
-									"top": 238,
+									"top": 245,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -718,7 +718,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 630,
-									"top": 220,
+									"top": 235,
 									"width": 14.82177734375,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -742,7 +742,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 650,
-									"top": 222,
+									"top": 237,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -764,7 +764,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 609,
-									"top": 216,
+									"top": 231,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 25,
@@ -881,7 +881,7 @@
 								"$ref": "AAAAAAGdV9wPpg0aOL8="
 							},
 							"lineStyle": 1,
-							"points": "622:201;623:287",
+							"points": "622:216;623:287",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdV+U7Xg3XHVs="
@@ -1111,7 +1111,25 @@
 											"top": 618,
 											"width": 203.21728515625,
 											"height": 13,
-											"text": "+String beneficiary_user_id",
+											"text": "+TransactionBy transaction_by",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-wallettransaction-amount-view",
+											"_parent": {
+												"$ref": "AAAAAAGdV+ZiHRE+pNg="
+											},
+											"model": {
+												"$ref": "copilot-wallettransaction-amount-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 197,
+											"top": 633,
+											"width": 203.21728515625,
+											"height": 13,
+											"text": "+Decimal amount",
 											"horizontalAlignment": 0
 										},
 										{
@@ -1126,7 +1144,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 197,
-											"top": 633,
+											"top": 648,
 											"width": 203.21728515625,
 											"height": 13,
 											"text": "+Decimal balance_before",
@@ -1144,7 +1162,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 197,
-											"top": 648,
+											"top": 663,
 											"width": 203.21728515625,
 											"height": 13,
 											"text": "+Decimal balance_after",
@@ -1162,7 +1180,7 @@
 											"font": "Arial;13;0",
 											"parentStyle": true,
 											"left": 197,
-											"top": 663,
+											"top": 678,
 											"width": 203.21728515625,
 											"height": 13,
 											"text": "+DateTime created_at",
@@ -1174,7 +1192,7 @@
 									"left": 192,
 									"top": 553,
 									"width": 213.21728515625,
-									"height": 128
+									"height": 143
 								},
 								{
 									"_type": "UMLOperationCompartmentView",
@@ -1188,7 +1206,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": true,
 									"left": 192,
-									"top": 681,
+									"top": 696,
 									"width": 213.21728515625,
 									"height": 10
 								},
@@ -1233,7 +1251,7 @@
 							"left": 192,
 							"top": 528,
 							"width": 212.21728515625,
-							"height": 208,
+							"height": 223,
 							"nameCompartment": {
 								"$ref": "AAAAAAGdV+ZiHRE5+gA="
 							},
@@ -1629,7 +1647,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 640,
+											"left": 656,
 											"top": -160,
 											"height": 13
 										},
@@ -1641,7 +1659,7 @@
 											},
 											"font": "Arial;13;1",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 535,
 											"width": 175,
 											"height": 13,
@@ -1656,7 +1674,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 640,
+											"left": 656,
 											"top": -160,
 											"width": 73.67724609375,
 											"height": 13,
@@ -1671,7 +1689,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 640,
+											"left": 656,
 											"top": -160,
 											"height": 13,
 											"horizontalAlignment": 1
@@ -1679,7 +1697,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 952,
+									"left": 960,
 									"top": 528,
 									"width": 185,
 									"height": 25,
@@ -1717,7 +1735,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 558,
 											"width": 175,
 											"height": 13,
@@ -1735,7 +1753,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 573,
 											"width": 175,
 											"height": 13,
@@ -1753,7 +1771,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 588,
 											"width": 175,
 											"height": 13,
@@ -1771,7 +1789,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 603,
 											"width": 175,
 											"height": 13,
@@ -1789,7 +1807,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 618,
 											"width": 175,
 											"height": 13,
@@ -1807,7 +1825,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 633,
 											"width": 175,
 											"height": 13,
@@ -1825,7 +1843,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 648,
 											"width": 175,
 											"height": 13,
@@ -1843,7 +1861,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 663,
 											"width": 175,
 											"height": 13,
@@ -1861,7 +1879,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 678,
 											"width": 175,
 											"height": 13,
@@ -1879,7 +1897,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 693,
 											"width": 175,
 											"height": 13,
@@ -1897,7 +1915,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 957,
+											"left": 965,
 											"top": 708,
 											"width": 175,
 											"height": 13,
@@ -1907,7 +1925,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 952,
+									"left": 960,
 									"top": 553,
 									"width": 185,
 									"height": 173
@@ -1923,7 +1941,7 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 952,
+									"left": 960,
 									"top": 726,
 									"width": 185,
 									"height": 10
@@ -1940,7 +1958,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 320,
+									"left": 328,
 									"top": -80,
 									"width": 10,
 									"height": 10
@@ -1957,7 +1975,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 320,
+									"left": 328,
 									"top": -80,
 									"width": 10,
 									"height": 10
@@ -1966,7 +1984,7 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 952,
+							"left": 960,
 							"top": 528,
 							"width": 184,
 							"height": 208,
@@ -1984,6 +2002,1088 @@
 							},
 							"templateParameterCompartment": {
 								"$ref": "AAAAAAGdV+1Tmhd7fEM="
+							}
+						},
+						{
+							"_type": "UMLClassView",
+							"_id": "copilot-walletactivities-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "copilot-walletactivities-name",
+									"_parent": {
+										"$ref": "copilot-walletactivities-view"
+									},
+									"model": {
+										"$ref": "copilot-walletactivities-class"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletactivities-stereotype",
+											"_parent": {
+												"$ref": "copilot-walletactivities-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1600,
+											"top": -704,
+											"height": 13
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletactivities-name-label",
+											"_parent": {
+												"$ref": "copilot-walletactivities-name"
+											},
+											"font": "Arial;13;1",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 31,
+											"width": 173,
+											"height": 13,
+											"text": "WalletActivities"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletactivities-namespace",
+											"_parent": {
+												"$ref": "copilot-walletactivities-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1600,
+											"top": -704,
+											"width": 73.67724609375,
+											"height": 13,
+											"text": "(from Model)"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletactivities-property",
+											"_parent": {
+												"$ref": "copilot-walletactivities-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1600,
+											"top": -704,
+											"height": 13,
+											"horizontalAlignment": 1
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1160,
+									"top": 24,
+									"width": 183,
+									"height": 25,
+									"stereotypeLabel": {
+										"$ref": "copilot-walletactivities-stereotype"
+									},
+									"nameLabel": {
+										"$ref": "copilot-walletactivities-name-label"
+									},
+									"namespaceLabel": {
+										"$ref": "copilot-walletactivities-namespace"
+									},
+									"propertyLabel": {
+										"$ref": "copilot-walletactivities-property"
+									}
+								},
+								{
+									"_type": "UMLAttributeCompartmentView",
+									"_id": "copilot-walletactivities-attrs",
+									"_parent": {
+										"$ref": "copilot-walletactivities-view"
+									},
+									"model": {
+										"$ref": "copilot-walletactivities-class"
+									},
+									"subViews": [
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-id-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-id-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 54,
+											"width": 173,
+											"height": 13,
+											"text": "+UUID id",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-actor-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-actor-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 69,
+											"width": 173,
+											"height": 13,
+											"text": "+String actor_user_id",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-type-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-type-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 84,
+											"width": 173,
+											"height": 13,
+											"text": "+String activity_type",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-amount-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-amount-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 99,
+											"width": 173,
+											"height": 13,
+											"text": "+Decimal amount",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-reference-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-reference-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 114,
+											"width": 173,
+											"height": 13,
+											"text": "+UUID reference",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-metadata-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-metadata-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 129,
+											"width": 173,
+											"height": 13,
+											"text": "+JSON metadata",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletactivities-created-at-view",
+											"_parent": {
+												"$ref": "copilot-walletactivities-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletactivities-created-at-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1165,
+											"top": 144,
+											"width": 173,
+											"height": 13,
+											"text": "+DateTime created_at",
+											"horizontalAlignment": 0
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1160,
+									"top": 49,
+									"width": 183,
+									"height": 113
+								},
+								{
+									"_type": "UMLOperationCompartmentView",
+									"_id": "copilot-walletactivities-ops",
+									"_parent": {
+										"$ref": "copilot-walletactivities-view"
+									},
+									"model": {
+										"$ref": "copilot-walletactivities-class"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1160,
+									"top": 162,
+									"width": 183,
+									"height": 10
+								},
+								{
+									"_type": "UMLReceptionCompartmentView",
+									"_id": "copilot-walletactivities-reception",
+									"_parent": {
+										"$ref": "copilot-walletactivities-view"
+									},
+									"model": {
+										"$ref": "copilot-walletactivities-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 756,
+									"top": -392,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLTemplateParameterCompartmentView",
+									"_id": "copilot-walletactivities-template",
+									"_parent": {
+										"$ref": "copilot-walletactivities-view"
+									},
+									"model": {
+										"$ref": "copilot-walletactivities-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 756,
+									"top": -392,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"containerChangeable": true,
+							"left": 1160,
+							"top": 24,
+							"width": 182,
+							"height": 193,
+							"nameCompartment": {
+								"$ref": "copilot-walletactivities-name"
+							},
+							"attributeCompartment": {
+								"$ref": "copilot-walletactivities-attrs"
+							},
+							"operationCompartment": {
+								"$ref": "copilot-walletactivities-ops"
+							},
+							"receptionCompartment": {
+								"$ref": "copilot-walletactivities-reception"
+							},
+							"templateParameterCompartment": {
+								"$ref": "copilot-walletactivities-template"
+							}
+						},
+						{
+							"_type": "UMLClassView",
+							"_id": "copilot-walletspending-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-walletspending-class"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "copilot-walletspending-name",
+									"_parent": {
+										"$ref": "copilot-walletspending-view"
+									},
+									"model": {
+										"$ref": "copilot-walletspending-class"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletspending-stereotype",
+											"_parent": {
+												"$ref": "copilot-walletspending-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1016,
+											"top": -192,
+											"height": 13
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletspending-name-label",
+											"_parent": {
+												"$ref": "copilot-walletspending-name"
+											},
+											"font": "Arial;13;1",
+											"parentStyle": true,
+											"left": 973,
+											"top": 287,
+											"width": 155,
+											"height": 13,
+											"text": "WalletSpending"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletspending-namespace",
+											"_parent": {
+												"$ref": "copilot-walletspending-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1016,
+											"top": -192,
+											"width": 73.67724609375,
+											"height": 13,
+											"text": "(from Model)"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-walletspending-property",
+											"_parent": {
+												"$ref": "copilot-walletspending-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1016,
+											"top": -192,
+											"height": 13,
+											"horizontalAlignment": 1
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 968,
+									"top": 280,
+									"width": 165,
+									"height": 25,
+									"stereotypeLabel": {
+										"$ref": "copilot-walletspending-stereotype"
+									},
+									"nameLabel": {
+										"$ref": "copilot-walletspending-name-label"
+									},
+									"namespaceLabel": {
+										"$ref": "copilot-walletspending-namespace"
+									},
+									"propertyLabel": {
+										"$ref": "copilot-walletspending-property"
+									}
+								},
+								{
+									"_type": "UMLAttributeCompartmentView",
+									"_id": "copilot-walletspending-attrs",
+									"_parent": {
+										"$ref": "copilot-walletspending-view"
+									},
+									"model": {
+										"$ref": "copilot-walletspending-class"
+									},
+									"subViews": [
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletspending-id-view",
+											"_parent": {
+												"$ref": "copilot-walletspending-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletspending-id-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 973,
+											"top": 310,
+											"width": 155,
+											"height": 13,
+											"text": "+UUID id",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletspending-user-view",
+											"_parent": {
+												"$ref": "copilot-walletspending-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletspending-user-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 973,
+											"top": 325,
+											"width": 155,
+											"height": 13,
+											"text": "+String user_id",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletspending-amount-view",
+											"_parent": {
+												"$ref": "copilot-walletspending-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletspending-amount-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 973,
+											"top": 340,
+											"width": 155,
+											"height": 13,
+											"text": "+Decimal amount",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-walletspending-created-at-view",
+											"_parent": {
+												"$ref": "copilot-walletspending-attrs"
+											},
+											"model": {
+												"$ref": "copilot-walletspending-created-at-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 973,
+											"top": 355,
+											"width": 155,
+											"height": 13,
+											"text": "+DateTime created_at",
+											"horizontalAlignment": 0
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 968,
+									"top": 305,
+									"width": 165,
+									"height": 68
+								},
+								{
+									"_type": "UMLOperationCompartmentView",
+									"_id": "copilot-walletspending-ops",
+									"_parent": {
+										"$ref": "copilot-walletspending-view"
+									},
+									"model": {
+										"$ref": "copilot-walletspending-class"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 968,
+									"top": 373,
+									"width": 165,
+									"height": 10
+								},
+								{
+									"_type": "UMLReceptionCompartmentView",
+									"_id": "copilot-walletspending-reception",
+									"_parent": {
+										"$ref": "copilot-walletspending-view"
+									},
+									"model": {
+										"$ref": "copilot-walletspending-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 432,
+									"top": -136,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLTemplateParameterCompartmentView",
+									"_id": "copilot-walletspending-template",
+									"_parent": {
+										"$ref": "copilot-walletspending-view"
+									},
+									"model": {
+										"$ref": "copilot-walletspending-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 432,
+									"top": -136,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"containerChangeable": true,
+							"left": 968,
+							"top": 280,
+							"width": 164,
+							"height": 103,
+							"nameCompartment": {
+								"$ref": "copilot-walletspending-name"
+							},
+							"attributeCompartment": {
+								"$ref": "copilot-walletspending-attrs"
+							},
+							"operationCompartment": {
+								"$ref": "copilot-walletspending-ops"
+							},
+							"receptionCompartment": {
+								"$ref": "copilot-walletspending-reception"
+							},
+							"templateParameterCompartment": {
+								"$ref": "copilot-walletspending-template"
+							}
+						},
+						{
+							"_type": "UMLClassView",
+							"_id": "copilot-customperiod-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-customperiod-class"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "copilot-customperiod-name",
+									"_parent": {
+										"$ref": "copilot-customperiod-view"
+									},
+									"model": {
+										"$ref": "copilot-customperiod-class"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "copilot-customperiod-stereotype",
+											"_parent": {
+												"$ref": "copilot-customperiod-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1518,
+											"top": -64,
+											"height": 13
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-customperiod-name-label",
+											"_parent": {
+												"$ref": "copilot-customperiod-name"
+											},
+											"font": "Arial;13;1",
+											"parentStyle": true,
+											"left": 1341,
+											"top": 591,
+											"width": 149,
+											"height": 13,
+											"text": "CustomPeriod"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-customperiod-namespace",
+											"_parent": {
+												"$ref": "copilot-customperiod-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1518,
+											"top": -64,
+											"width": 73.67724609375,
+											"height": 13,
+											"text": "(from Model)"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-customperiod-property",
+											"_parent": {
+												"$ref": "copilot-customperiod-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1518,
+											"top": -64,
+											"height": 13,
+											"horizontalAlignment": 1
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1336,
+									"top": 584,
+									"width": 159,
+									"height": 25,
+									"stereotypeLabel": {
+										"$ref": "copilot-customperiod-stereotype"
+									},
+									"nameLabel": {
+										"$ref": "copilot-customperiod-name-label"
+									},
+									"namespaceLabel": {
+										"$ref": "copilot-customperiod-namespace"
+									},
+									"propertyLabel": {
+										"$ref": "copilot-customperiod-property"
+									}
+								},
+								{
+									"_type": "UMLAttributeCompartmentView",
+									"_id": "copilot-customperiod-attrs",
+									"_parent": {
+										"$ref": "copilot-customperiod-view"
+									},
+									"model": {
+										"$ref": "copilot-customperiod-class"
+									},
+									"subViews": [
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-customperiod-id-view",
+											"_parent": {
+												"$ref": "copilot-customperiod-attrs"
+											},
+											"model": {
+												"$ref": "copilot-customperiod-id-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1341,
+											"top": 614,
+											"width": 149,
+											"height": 13,
+											"text": "+UUID id",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-customperiod-start-view",
+											"_parent": {
+												"$ref": "copilot-customperiod-attrs"
+											},
+											"model": {
+												"$ref": "copilot-customperiod-start-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1341,
+											"top": 629,
+											"width": 149,
+											"height": 13,
+											"text": "+DateTime start_at",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-customperiod-end-view",
+											"_parent": {
+												"$ref": "copilot-customperiod-attrs"
+											},
+											"model": {
+												"$ref": "copilot-customperiod-end-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1341,
+											"top": 644,
+											"width": 149,
+											"height": 13,
+											"text": "+DateTime end_at",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLAttributeView",
+											"_id": "copilot-customperiod-created-at-view",
+											"_parent": {
+												"$ref": "copilot-customperiod-attrs"
+											},
+											"model": {
+												"$ref": "copilot-customperiod-created-at-attr"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 1341,
+											"top": 659,
+											"width": 149,
+											"height": 13,
+											"text": "+DateTime created_at",
+											"horizontalAlignment": 0
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1336,
+									"top": 609,
+									"width": 159,
+									"height": 68
+								},
+								{
+									"_type": "UMLOperationCompartmentView",
+									"_id": "copilot-customperiod-ops",
+									"_parent": {
+										"$ref": "copilot-customperiod-view"
+									},
+									"model": {
+										"$ref": "copilot-customperiod-class"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 1336,
+									"top": 677,
+									"width": 159,
+									"height": 10
+								},
+								{
+									"_type": "UMLReceptionCompartmentView",
+									"_id": "copilot-customperiod-reception",
+									"_parent": {
+										"$ref": "copilot-customperiod-view"
+									},
+									"model": {
+										"$ref": "copilot-customperiod-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 636,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLTemplateParameterCompartmentView",
+									"_id": "copilot-customperiod-template",
+									"_parent": {
+										"$ref": "copilot-customperiod-view"
+									},
+									"model": {
+										"$ref": "copilot-customperiod-class"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 636,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"containerChangeable": true,
+							"left": 1336,
+							"top": 584,
+							"width": 158,
+							"height": 103,
+							"nameCompartment": {
+								"$ref": "copilot-customperiod-name"
+							},
+							"attributeCompartment": {
+								"$ref": "copilot-customperiod-attrs"
+							},
+							"operationCompartment": {
+								"$ref": "copilot-customperiod-ops"
+							},
+							"receptionCompartment": {
+								"$ref": "copilot-customperiod-reception"
+							},
+							"templateParameterCompartment": {
+								"$ref": "copilot-customperiod-template"
+							}
+						},
+						{
+							"_type": "UMLEnumerationView",
+							"_id": "copilot-transactionby-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-transactionby-enum"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "copilot-transactionby-name",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "copilot-transactionby-stereotype",
+											"_parent": {
+												"$ref": "copilot-transactionby-name"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 309,
+											"top": 805,
+											"width": 112,
+											"height": 13,
+											"text": "«enumeration»"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-transactionby-name-label",
+											"_parent": {
+												"$ref": "copilot-transactionby-name"
+											},
+											"font": "Arial;13;1",
+											"parentStyle": true,
+											"left": 309,
+											"top": 820,
+											"width": 112,
+											"height": 13,
+											"text": "TransactionBy"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-transactionby-namespace",
+											"_parent": {
+												"$ref": "copilot-transactionby-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 229,
+											"top": -96,
+											"width": 73.67724609375,
+											"height": 13,
+											"text": "(from Model)"
+										},
+										{
+											"_type": "LabelView",
+											"_id": "copilot-transactionby-property",
+											"_parent": {
+												"$ref": "copilot-transactionby-name"
+											},
+											"visible": false,
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 229,
+											"top": -96,
+											"height": 13,
+											"horizontalAlignment": 1
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": 800,
+									"width": 122,
+									"height": 38,
+									"stereotypeLabel": {
+										"$ref": "copilot-transactionby-stereotype"
+									},
+									"nameLabel": {
+										"$ref": "copilot-transactionby-name-label"
+									},
+									"namespaceLabel": {
+										"$ref": "copilot-transactionby-namespace"
+									},
+									"propertyLabel": {
+										"$ref": "copilot-transactionby-property"
+									}
+								},
+								{
+									"_type": "UMLAttributeCompartmentView",
+									"_id": "copilot-transactionby-attr-comp",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 160,
+									"top": -48,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLOperationCompartmentView",
+									"_id": "copilot-transactionby-op-comp",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 160,
+									"top": -48,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLReceptionCompartmentView",
+									"_id": "copilot-transactionby-reception-comp",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 160,
+									"top": -48,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLTemplateParameterCompartmentView",
+									"_id": "copilot-transactionby-template-comp",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 160,
+									"top": -48,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLEnumerationLiteralCompartmentView",
+									"_id": "copilot-transactionby-literals",
+									"_parent": {
+										"$ref": "copilot-transactionby-view"
+									},
+									"model": {
+										"$ref": "copilot-transactionby-enum"
+									},
+									"subViews": [
+										{
+											"_type": "UMLEnumerationLiteralView",
+											"_id": "copilot-transactionby-owner-view",
+											"_parent": {
+												"$ref": "copilot-transactionby-literals"
+											},
+											"model": {
+												"$ref": "copilot-transactionby-owner-literal"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 309,
+											"top": 843,
+											"width": 112,
+											"height": 13,
+											"text": "OWNER",
+											"horizontalAlignment": 0
+										},
+										{
+											"_type": "UMLEnumerationLiteralView",
+											"_id": "copilot-transactionby-beneficiary-view",
+											"_parent": {
+												"$ref": "copilot-transactionby-literals"
+											},
+											"model": {
+												"$ref": "copilot-transactionby-beneficiary-literal"
+											},
+											"font": "Arial;13;0",
+											"parentStyle": true,
+											"left": 309,
+											"top": 858,
+											"width": 112,
+											"height": 13,
+											"text": "BENEFICIARY",
+											"horizontalAlignment": 0
+										}
+									],
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": 838,
+									"width": 122,
+									"height": 38
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"containerChangeable": true,
+							"left": 304,
+							"top": 800,
+							"width": 121,
+							"height": 104,
+							"nameCompartment": {
+								"$ref": "copilot-transactionby-name"
+							},
+							"suppressAttributes": true,
+							"suppressOperations": true,
+							"attributeCompartment": {
+								"$ref": "copilot-transactionby-attr-comp"
+							},
+							"operationCompartment": {
+								"$ref": "copilot-transactionby-op-comp"
+							},
+							"receptionCompartment": {
+								"$ref": "copilot-transactionby-reception-comp"
+							},
+							"templateParameterCompartment": {
+								"$ref": "copilot-transactionby-template-comp"
+							},
+							"enumerationLiteralCompartment": {
+								"$ref": "copilot-transactionby-literals"
 							}
 						},
 						{
@@ -2014,7 +3114,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 805,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2028,7 +3128,7 @@
 											},
 											"font": "Arial;13;1",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 820,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2043,7 +3143,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 272,
+											"left": 112,
 											"top": -80,
 											"width": 73.67724609375,
 											"height": 13,
@@ -2058,7 +3158,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 272,
+											"left": 112,
 											"top": -80,
 											"height": 13,
 											"horizontalAlignment": 1
@@ -2066,7 +3166,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 240,
+									"left": 160,
 									"top": 800,
 									"width": 115.72998046875,
 									"height": 38,
@@ -2095,7 +3195,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 136,
+									"left": 56,
 									"top": -40,
 									"width": 10,
 									"height": 10
@@ -2112,7 +3212,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 136,
+									"left": 56,
 									"top": -40,
 									"width": 10,
 									"height": 10
@@ -2129,7 +3229,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 136,
+									"left": 56,
 									"top": -40,
 									"width": 10,
 									"height": 10
@@ -2146,7 +3246,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 136,
+									"left": 56,
 									"top": -40,
 									"width": 10,
 									"height": 10
@@ -2172,7 +3272,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 843,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2190,7 +3290,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 858,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2208,7 +3308,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 873,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2226,7 +3326,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 245,
+											"left": 165,
 											"top": 888,
 											"width": 105.72998046875,
 											"height": 13,
@@ -2236,7 +3336,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 240,
+									"left": 160,
 									"top": 838,
 									"width": 115.72998046875,
 									"height": 68
@@ -2245,7 +3345,7 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 240,
+							"left": 160,
 							"top": 800,
 							"width": 114.72998046875,
 							"height": 106,
@@ -2298,8 +3398,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 813,
+											"left": 533,
+											"top": 805,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "«enumeration»"
@@ -2312,8 +3412,8 @@
 											},
 											"font": "Arial;13;1",
 											"parentStyle": true,
-											"left": 525,
-											"top": 828,
+											"left": 533,
+											"top": 820,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "ActionType"
@@ -2327,8 +3427,8 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 320,
-											"top": -80,
+											"left": 336,
+											"top": -96,
 											"width": 73.67724609375,
 											"height": 13,
 											"text": "(from Model)"
@@ -2342,16 +3442,16 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 320,
-											"top": -80,
+											"left": 336,
+											"top": -96,
 											"height": 13,
 											"horizontalAlignment": 1
 										}
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 520,
-									"top": 808,
+									"left": 528,
+									"top": 800,
 									"width": 187.73779296875,
 									"height": 38,
 									"stereotypeLabel": {
@@ -2379,8 +3479,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 160,
-									"top": -40,
+									"left": 168,
+									"top": -48,
 									"width": 10,
 									"height": 10
 								},
@@ -2396,8 +3496,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 160,
-									"top": -40,
+									"left": 168,
+									"top": -48,
 									"width": 10,
 									"height": 10
 								},
@@ -2413,8 +3513,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 160,
-									"top": -40,
+									"left": 168,
+									"top": -48,
 									"width": 10,
 									"height": 10
 								},
@@ -2430,8 +3530,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 160,
-									"top": -40,
+									"left": 168,
+									"top": -48,
 									"width": 10,
 									"height": 10
 								},
@@ -2456,8 +3556,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 851,
+											"left": 533,
+											"top": 843,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "ADDED",
@@ -2474,8 +3574,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 866,
+											"left": 533,
+											"top": 858,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "REMOVED",
@@ -2492,8 +3592,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 881,
+											"left": 533,
+											"top": 873,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "TRANSFER_OUT",
@@ -2510,8 +3610,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 896,
+											"left": 533,
+											"top": 888,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "SPENDING_LIMIT_SET",
@@ -2528,8 +3628,8 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 525,
-											"top": 911,
+											"left": 533,
+											"top": 903,
 											"width": 177.73779296875,
 											"height": 13,
 											"text": "SPENDING_LIMIT_UPDATED",
@@ -2538,8 +3638,8 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 520,
-									"top": 846,
+									"left": 528,
+									"top": 838,
 									"width": 187.73779296875,
 									"height": 83
 								}
@@ -2547,8 +3647,8 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 520,
-							"top": 808,
+							"left": 528,
+							"top": 800,
 							"width": 186.73779296875,
 							"height": 121,
 							"nameCompartment": {
@@ -2848,7 +3948,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 997,
+											"left": 1005,
 											"top": 813,
 											"width": 89.84814453125,
 											"height": 13,
@@ -2862,7 +3962,7 @@
 											},
 											"font": "Arial;13;1",
 											"parentStyle": true,
-											"left": 997,
+											"left": 1005,
 											"top": 828,
 											"width": 89.84814453125,
 											"height": 13,
@@ -2877,7 +3977,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 704,
+											"left": 720,
 											"top": -32,
 											"width": 73.67724609375,
 											"height": 13,
@@ -2892,7 +3992,7 @@
 											"visible": false,
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 704,
+											"left": 720,
 											"top": -32,
 											"height": 13,
 											"horizontalAlignment": 1
@@ -2900,7 +4000,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 992,
+									"left": 1000,
 									"top": 808,
 									"width": 99.84814453125,
 									"height": 38,
@@ -2929,7 +4029,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 352,
+									"left": 360,
 									"top": -16,
 									"width": 10,
 									"height": 10
@@ -2946,7 +4046,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 352,
+									"left": 360,
 									"top": -16,
 									"width": 10,
 									"height": 10
@@ -2963,7 +4063,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 352,
+									"left": 360,
 									"top": -16,
 									"width": 10,
 									"height": 10
@@ -2980,7 +4080,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 352,
+									"left": 360,
 									"top": -16,
 									"width": 10,
 									"height": 10
@@ -3006,7 +4106,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 997,
+											"left": 1005,
 											"top": 851,
 											"width": 89.84814453125,
 											"height": 13,
@@ -3024,7 +4124,7 @@
 											},
 											"font": "Arial;13;0",
 											"parentStyle": true,
-											"left": 997,
+											"left": 1005,
 											"top": 866,
 											"width": 89.84814453125,
 											"height": 13,
@@ -3034,7 +4134,7 @@
 									],
 									"font": "Arial;13;0",
 									"parentStyle": true,
-									"left": 992,
+									"left": 1000,
 									"top": 846,
 									"width": 99.84814453125,
 									"height": 38
@@ -3043,7 +4143,7 @@
 							"font": "Arial;13;0",
 							"parentStyle": false,
 							"containerChangeable": true,
-							"left": 992,
+							"left": 1000,
 							"top": 808,
 							"width": 98.84814453125,
 							"height": 120,
@@ -3372,6 +4472,1444 @@
 						},
 						{
 							"_type": "UMLAssociationView",
+							"_id": "copilot-wallet-activities-assoc-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-wallet-activities-assoc"
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-name",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 908,
+									"top": 98,
+									"width": 57.43994140625,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 1,
+									"text": "+activities"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-stereotype",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc"
+									},
+									"visible": null,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 936,
+									"top": 83,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-property",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 935,
+									"top": 127,
+									"height": 13,
+									"alpha": -1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-tail-role",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 732,
+									"top": 98,
+									"width": 14.82177734375,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "+1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-tail-prop",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 741,
+									"top": 84,
+									"height": 13,
+									"alpha": 0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-tail-multiplicity",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end1"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 731,
+									"top": 125,
+									"width": 7.22998046875,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-head-role",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1133,
+									"top": 98,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-head-prop",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1130,
+									"top": 85,
+									"height": 13,
+									"alpha": -0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-activities-head-multiplicity",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end2"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1128,
+									"top": 126,
+									"width": 19.5126953125,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"text": "0..*"
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-wallet-activities-tail-qualifiers",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-wallet-activities-head-qualifiers",
+									"_parent": {
+										"$ref": "copilot-wallet-activities-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-activities-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"head": {
+								"$ref": "copilot-walletactivities-view"
+							},
+							"tail": {
+								"$ref": "AAAAAAGdV9wPpg0aOL8="
+							},
+							"lineStyle": 1,
+							"points": "713:119;1159:120",
+							"showVisibility": true,
+							"nameLabel": {
+								"$ref": "copilot-wallet-activities-name"
+							},
+							"stereotypeLabel": {
+								"$ref": "copilot-wallet-activities-stereotype"
+							},
+							"propertyLabel": {
+								"$ref": "copilot-wallet-activities-property"
+							},
+							"showEndOrder": "hide",
+							"tailRoleNameLabel": {
+								"$ref": "copilot-wallet-activities-tail-role"
+							},
+							"tailPropertyLabel": {
+								"$ref": "copilot-wallet-activities-tail-prop"
+							},
+							"tailMultiplicityLabel": {
+								"$ref": "copilot-wallet-activities-tail-multiplicity"
+							},
+							"headRoleNameLabel": {
+								"$ref": "copilot-wallet-activities-head-role"
+							},
+							"headPropertyLabel": {
+								"$ref": "copilot-wallet-activities-head-prop"
+							},
+							"headMultiplicityLabel": {
+								"$ref": "copilot-wallet-activities-head-multiplicity"
+							},
+							"tailQualifiersCompartment": {
+								"$ref": "copilot-wallet-activities-tail-qualifiers"
+							},
+							"headQualifiersCompartment": {
+								"$ref": "copilot-wallet-activities-head-qualifiers"
+							}
+						},
+						{
+							"_type": "UMLAssociationView",
+							"_id": "copilot-wallet-spendings-assoc-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-wallet-spendings-assoc"
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-name",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 813,
+									"top": 207,
+									"width": 66.85986328125,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 1,
+									"text": "+spendings"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-stereotype",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc"
+									},
+									"visible": null,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 853,
+									"top": 194,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-property",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 833,
+									"top": 234,
+									"height": 13,
+									"alpha": -1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-tail-role",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 735,
+									"top": 157,
+									"width": 14.82177734375,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "+1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-tail-prop",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 750,
+									"top": 146,
+									"height": 13,
+									"alpha": 0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-tail-multiplicity",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end1"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 723,
+									"top": 179,
+									"width": 7.22998046875,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-head-role",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 950,
+									"top": 259,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-head-prop",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 954,
+									"top": 246,
+									"height": 13,
+									"alpha": -0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-wallet-spendings-head-multiplicity",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end2"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 933,
+									"top": 285,
+									"width": 19.5126953125,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"text": "0..*"
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-wallet-spendings-tail-qualifiers",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-wallet-spendings-head-qualifiers",
+									"_parent": {
+										"$ref": "copilot-wallet-spendings-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallet-spendings-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"left": 304,
+									"top": -72,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"head": {
+								"$ref": "copilot-walletspending-view"
+							},
+							"tail": {
+								"$ref": "AAAAAAGdV9wPpg0aOL8="
+							},
+							"lineStyle": 1,
+							"points": "713:165;967:290",
+							"showVisibility": true,
+							"nameLabel": {
+								"$ref": "copilot-wallet-spendings-name"
+							},
+							"stereotypeLabel": {
+								"$ref": "copilot-wallet-spendings-stereotype"
+							},
+							"propertyLabel": {
+								"$ref": "copilot-wallet-spendings-property"
+							},
+							"showEndOrder": "hide",
+							"tailRoleNameLabel": {
+								"$ref": "copilot-wallet-spendings-tail-role"
+							},
+							"tailPropertyLabel": {
+								"$ref": "copilot-wallet-spendings-tail-prop"
+							},
+							"tailMultiplicityLabel": {
+								"$ref": "copilot-wallet-spendings-tail-multiplicity"
+							},
+							"headRoleNameLabel": {
+								"$ref": "copilot-wallet-spendings-head-role"
+							},
+							"headPropertyLabel": {
+								"$ref": "copilot-wallet-spendings-head-prop"
+							},
+							"headMultiplicityLabel": {
+								"$ref": "copilot-wallet-spendings-head-multiplicity"
+							},
+							"tailQualifiersCompartment": {
+								"$ref": "copilot-wallet-spendings-tail-qualifiers"
+							},
+							"headQualifiersCompartment": {
+								"$ref": "copilot-wallet-spendings-head-qualifiers"
+							}
+						},
+						{
+							"_type": "UMLAssociationView",
+							"_id": "copilot-spendinglimit-walletspending-assoc-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-spendinglimit-walletspending-assoc"
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-name",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 967,
+									"top": 448,
+									"width": 66.85986328125,
+									"height": 13,
+									"alpha": -4.732794174389356,
+									"distance": 49.01020301937138,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 1,
+									"text": "+spendings"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-stereotype",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc"
+									},
+									"visible": null,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1020,
+									"top": 448,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-property",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1064,
+									"top": 449,
+									"height": 13,
+									"alpha": -1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-tail-role",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1028,
+									"top": 495,
+									"width": 14.82177734375,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "+1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-tail-prop",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1022,
+									"top": 492,
+									"height": 13,
+									"alpha": 0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-tail-multiplicity",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end1"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1060,
+									"top": 499,
+									"width": 7.22998046875,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-head-role",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1035,
+									"top": 404,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-head-prop",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1021,
+									"top": 406,
+									"height": 13,
+									"alpha": -0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-walletspending-head-multiplicity",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end2"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1053,
+									"top": 399,
+									"width": 19.5126953125,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"text": "0..*"
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-spendinglimit-walletspending-tail-qualifiers",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-spendinglimit-walletspending-head-qualifiers",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-walletspending-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"head": {
+								"$ref": "copilot-walletspending-view"
+							},
+							"tail": {
+								"$ref": "AAAAAAGdV+1TmBdy3DY="
+							},
+							"lineStyle": 1,
+							"points": "1051:527;1050:384",
+							"showVisibility": true,
+							"nameLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-name"
+							},
+							"stereotypeLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-stereotype"
+							},
+							"propertyLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-property"
+							},
+							"showEndOrder": "hide",
+							"tailRoleNameLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-tail-role"
+							},
+							"tailPropertyLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-tail-prop"
+							},
+							"tailMultiplicityLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-tail-multiplicity"
+							},
+							"headRoleNameLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-head-role"
+							},
+							"headPropertyLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-head-prop"
+							},
+							"headMultiplicityLabel": {
+								"$ref": "copilot-spendinglimit-walletspending-head-multiplicity"
+							},
+							"tailQualifiersCompartment": {
+								"$ref": "copilot-spendinglimit-walletspending-tail-qualifiers"
+							},
+							"headQualifiersCompartment": {
+								"$ref": "copilot-spendinglimit-walletspending-head-qualifiers"
+							}
+						},
+						{
+							"_type": "UMLAssociationView",
+							"_id": "copilot-spendinglimit-customperiod-assoc-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-spendinglimit-customperiod-assoc"
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-name",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1194,
+									"top": 612,
+									"width": 92.85986328125,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 1,
+									"text": "+custom_period"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-stereotype",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc"
+									},
+									"visible": null,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1240,
+									"top": 597,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-property",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1239,
+									"top": 641,
+									"height": 13,
+									"alpha": -1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-tail-role",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1164,
+									"top": 612,
+									"width": 14.82177734375,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "+1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-tail-prop",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1173,
+									"top": 598,
+									"height": 13,
+									"alpha": 0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-tail-multiplicity",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end1"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1163,
+									"top": 639,
+									"width": 7.22998046875,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"edgePosition": 2,
+									"text": "1"
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-head-role",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1309,
+									"top": 612,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-head-prop",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1306,
+									"top": 599,
+									"height": 13,
+									"alpha": -0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-spendinglimit-customperiod-head-multiplicity",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end2"
+									},
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 1303,
+									"top": 640,
+									"width": 21.68359375,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"text": "0..1"
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-spendinglimit-customperiod-tail-qualifiers",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-spendinglimit-customperiod-head-qualifiers",
+									"_parent": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-spendinglimit-customperiod-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"head": {
+								"$ref": "copilot-customperiod-view"
+							},
+							"tail": {
+								"$ref": "AAAAAAGdV+1TmBdy3DY="
+							},
+							"lineStyle": 1,
+							"points": "1145:633;1335:634",
+							"showVisibility": true,
+							"nameLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-name"
+							},
+							"stereotypeLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-stereotype"
+							},
+							"propertyLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-property"
+							},
+							"showEndOrder": "hide",
+							"tailRoleNameLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-tail-role"
+							},
+							"tailPropertyLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-tail-prop"
+							},
+							"tailMultiplicityLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-tail-multiplicity"
+							},
+							"headRoleNameLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-head-role"
+							},
+							"headPropertyLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-head-prop"
+							},
+							"headMultiplicityLabel": {
+								"$ref": "copilot-spendinglimit-customperiod-head-multiplicity"
+							},
+							"tailQualifiersCompartment": {
+								"$ref": "copilot-spendinglimit-customperiod-tail-qualifiers"
+							},
+							"headQualifiersCompartment": {
+								"$ref": "copilot-spendinglimit-customperiod-head-qualifiers"
+							}
+						},
+						{
+							"_type": "UMLAssociationView",
+							"_id": "copilot-transactionby-assoc-view",
+							"_parent": {
+								"$ref": "AAAAAAFF+qBtyKM79qY="
+							},
+							"model": {
+								"$ref": "copilot-wallettransaction-transactionby-assoc"
+							},
+							"subViews": [
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-assoc-name",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 354,
+									"top": 764,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-assoc-stereotype",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc"
+									},
+									"visible": null,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 368,
+									"top": 759,
+									"height": 13,
+									"alpha": 1.5707963267948966,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-assoc-property",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 325,
+									"top": 773,
+									"height": 13,
+									"alpha": -1.5707963267948966,
+									"distance": 15,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 1
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-tail-role",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 355,
+									"top": 766,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-tail-prop",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 368,
+									"top": 764,
+									"height": 13,
+									"alpha": 0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-tail-multiplicity",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 327,
+									"top": 770,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"edgePosition": 2
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-head-role",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 354,
+									"top": 763,
+									"height": 13,
+									"alpha": -0.5235987755982988,
+									"distance": 30,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-head-prop",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 366,
+									"top": 757,
+									"height": 13,
+									"alpha": -0.7853981633974483,
+									"distance": 40,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									}
+								},
+								{
+									"_type": "EdgeLabelView",
+									"_id": "copilot-transactionby-head-multiplicity",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": false,
+									"left": 329,
+									"top": 776,
+									"height": 13,
+									"alpha": 0.5235987755982988,
+									"distance": 25,
+									"hostEdge": {
+										"$ref": "copilot-transactionby-assoc-view"
+									}
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-transactionby-tail-qualifiers",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end1"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								},
+								{
+									"_type": "UMLQualifierCompartmentView",
+									"_id": "copilot-transactionby-head-qualifiers",
+									"_parent": {
+										"$ref": "copilot-transactionby-assoc-view"
+									},
+									"model": {
+										"$ref": "copilot-wallettransaction-transactionby-assoc-end2"
+									},
+									"visible": false,
+									"font": "Arial;13;0",
+									"parentStyle": true,
+									"width": 10,
+									"height": 10
+								}
+							],
+							"font": "Arial;13;0",
+							"parentStyle": false,
+							"head": {
+								"$ref": "copilot-transactionby-view"
+							},
+							"tail": {
+								"$ref": "AAAAAAGdV+ZiHBE47NI="
+							},
+							"lineStyle": 1,
+							"points": "333:752;348:799",
+							"showVisibility": true,
+							"nameLabel": {
+								"$ref": "copilot-transactionby-assoc-name"
+							},
+							"stereotypeLabel": {
+								"$ref": "copilot-transactionby-assoc-stereotype"
+							},
+							"propertyLabel": {
+								"$ref": "copilot-transactionby-assoc-property"
+							},
+							"showEndOrder": "hide",
+							"tailRoleNameLabel": {
+								"$ref": "copilot-transactionby-tail-role"
+							},
+							"tailPropertyLabel": {
+								"$ref": "copilot-transactionby-tail-prop"
+							},
+							"tailMultiplicityLabel": {
+								"$ref": "copilot-transactionby-tail-multiplicity"
+							},
+							"headRoleNameLabel": {
+								"$ref": "copilot-transactionby-head-role"
+							},
+							"headPropertyLabel": {
+								"$ref": "copilot-transactionby-head-prop"
+							},
+							"headMultiplicityLabel": {
+								"$ref": "copilot-transactionby-head-multiplicity"
+							},
+							"tailQualifiersCompartment": {
+								"$ref": "copilot-transactionby-tail-qualifiers"
+							},
+							"headQualifiersCompartment": {
+								"$ref": "copilot-transactionby-head-qualifiers"
+							}
+						},
+						{
+							"_type": "UMLAssociationView",
 							"_id": "AAAAAAGdWAcbIDYrmgQ=",
 							"_parent": {
 								"$ref": "AAAAAAFF+qBtyKM79qY="
@@ -3392,8 +5930,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 311,
-									"top": 761,
+									"left": 260,
+									"top": 774,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -3414,8 +5952,8 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 326,
-									"top": 761,
+									"left": 274,
+									"top": 779,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -3436,8 +5974,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 282,
-									"top": 762,
+									"left": 231,
+									"top": 763,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -3458,8 +5996,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 312,
-									"top": 757,
+									"left": 259,
+									"top": 775,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -3480,8 +6018,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 325,
-									"top": 759,
+									"left": 271,
+									"top": 782,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -3502,8 +6040,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 285,
-									"top": 752,
+									"left": 235,
+									"top": 761,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 25,
@@ -3524,8 +6062,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 312,
-									"top": 767,
+									"left": 260,
+									"top": 774,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 30,
@@ -3545,8 +6083,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 325,
-									"top": 765,
+									"left": 273,
+									"top": 776,
 									"height": 13,
 									"alpha": -0.7853981633974483,
 									"distance": 40,
@@ -3566,8 +6104,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 284,
-									"top": 771,
+									"left": 233,
+									"top": 768,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 25,
@@ -3615,7 +6153,7 @@
 								"$ref": "AAAAAAGdV+ZiHBE47NI="
 							},
 							"lineStyle": 1,
-							"points": "298:737;297:799",
+							"points": "255:752;237:799",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWAcbIDYsl9c="
@@ -3674,8 +6212,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 629,
-									"top": 769,
+									"left": 634,
+									"top": 765,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -3696,8 +6234,8 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 644,
-									"top": 769,
+									"left": 649,
+									"top": 765,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -3718,8 +6256,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 600,
-									"top": 770,
+									"left": 605,
+									"top": 766,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -3740,8 +6278,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 630,
-									"top": 765,
+									"left": 635,
+									"top": 764,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -3762,7 +6300,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 643,
+									"left": 648,
 									"top": 767,
 									"height": 13,
 									"alpha": 0.7853981633974483,
@@ -3784,7 +6322,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 603,
+									"left": 607,
 									"top": 760,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -3806,8 +6344,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 630,
-									"top": 775,
+									"left": 635,
+									"top": 767,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 30,
@@ -3827,8 +6365,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 643,
-									"top": 773,
+									"left": 648,
+									"top": 764,
 									"height": 13,
 									"alpha": -0.7853981633974483,
 									"distance": 40,
@@ -3848,8 +6386,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 602,
-									"top": 779,
+									"left": 607,
+									"top": 771,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 25,
@@ -3901,7 +6439,7 @@
 								"$ref": "AAAAAAGdV+mymRRYxOQ="
 							},
 							"lineStyle": 1,
-							"points": "616:745;615:807",
+							"points": "620:745;620:799",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWAcpPjcIO+M="
@@ -3960,8 +6498,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 968,
-									"top": 773,
+									"left": 971,
+									"top": 774,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -3982,8 +6520,8 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 981,
-									"top": 781,
+									"left": 984,
+									"top": 782,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -4004,8 +6542,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 943,
-									"top": 758,
+									"left": 946,
+									"top": 757,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -4026,7 +6564,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 976,
+									"left": 980,
 									"top": 760,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -4048,8 +6586,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 986,
-									"top": 769,
+									"left": 990,
+									"top": 770,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -4070,7 +6608,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 955,
+									"left": 960,
 									"top": 742,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -4092,8 +6630,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 960,
-									"top": 786,
+									"left": 962,
+									"top": 787,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 30,
@@ -4113,8 +6651,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 972,
-									"top": 792,
+									"left": 975,
+									"top": 793,
 									"height": 13,
 									"alpha": -0.7853981633974483,
 									"distance": 40,
@@ -4134,7 +6672,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 934,
+									"left": 937,
 									"top": 776,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -4183,7 +6721,7 @@
 								"$ref": "AAAAAAGdV+1TmBdy3DY="
 							},
 							"lineStyle": 1,
-							"points": "978:737;934:807",
+							"points": "983:737;936:807",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWAc3DjiAvgo="
@@ -4242,7 +6780,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1056,
+									"left": 1064,
 									"top": 765,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -4264,7 +6802,7 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1071,
+									"left": 1079,
 									"top": 765,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -4286,7 +6824,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1027,
+									"left": 1035,
 									"top": 766,
 									"height": 13,
 									"alpha": -1.5707963267948966,
@@ -4308,7 +6846,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1057,
+									"left": 1065,
 									"top": 757,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -4330,7 +6868,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1070,
+									"left": 1078,
 									"top": 759,
 									"height": 13,
 									"alpha": 0.7853981633974483,
@@ -4352,7 +6890,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1030,
+									"left": 1038,
 									"top": 752,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -4374,7 +6912,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1057,
+									"left": 1065,
 									"top": 775,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -4395,7 +6933,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1070,
+									"left": 1078,
 									"top": 773,
 									"height": 13,
 									"alpha": -0.7853981633974483,
@@ -4416,7 +6954,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1029,
+									"left": 1037,
 									"top": 779,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -4465,7 +7003,7 @@
 								"$ref": "AAAAAAGdV+1TmBdy3DY="
 							},
 							"lineStyle": 1,
-							"points": "1043:737;1042:807",
+							"points": "1051:737;1050:807",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWAdEfzoo9U4="
@@ -4524,7 +7062,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1138,
+									"left": 1141,
 									"top": 758,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -4546,7 +7084,7 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1151,
+									"left": 1154,
 									"top": 751,
 									"height": 13,
 									"alpha": 1.5707963267948966,
@@ -4568,7 +7106,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1111,
+									"left": 1114,
 									"top": 773,
 									"height": 13,
 									"alpha": -1.5707963267948966,
@@ -4590,7 +7128,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1130,
+									"left": 1134,
 									"top": 746,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -4612,8 +7150,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1143,
-									"top": 741,
+									"left": 1147,
+									"top": 742,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -4634,7 +7172,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1104,
+									"left": 1108,
 									"top": 755,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -4656,7 +7194,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1145,
+									"left": 1147,
 									"top": 771,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -4677,7 +7215,7 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1155,
+									"left": 1158,
 									"top": 762,
 									"height": 13,
 									"alpha": -0.7853981633974483,
@@ -4698,8 +7236,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 1123,
-									"top": 788,
+									"left": 1125,
+									"top": 787,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 25,
@@ -4747,7 +7285,7 @@
 								"$ref": "AAAAAAGdV+1TmBdy3DY="
 							},
 							"lineStyle": 1,
-							"points": "1105:737;1145:807",
+							"points": "1109:737;1147:807",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWAdRyjw8H1s="
@@ -4873,8 +7411,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 501,
-									"top": 120,
+									"left": 500,
+									"top": 125,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -4896,7 +7434,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 498,
-									"top": 134,
+									"top": 138,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -4917,7 +7455,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 502,
-									"top": 93,
+									"top": 98,
 									"width": 7.22998046875,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -5032,7 +7570,7 @@
 								"$ref": "AAAAAAGdV9wPpg0aOL8="
 							},
 							"lineStyle": 1,
-							"points": "527:112;296:112;298:527",
+							"points": "527:117;296:112;298:527",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWBkhGUZfHh8="
@@ -5071,294 +7609,6 @@
 						},
 						{
 							"_type": "UMLAssociationView",
-							"_id": "AAAAAAGdWBlxzlGRFs8=",
-							"_parent": {
-								"$ref": "AAAAAAFF+qBtyKM79qY="
-							},
-							"model": {
-								"$ref": "AAAAAAGdWBlxzlGNogw="
-							},
-							"subViews": [
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxzlGSQIQ=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGNogw="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 489,
-									"top": 477,
-									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 15,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 1
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxzlGTaTk=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGNogw="
-									},
-									"visible": null,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 499,
-									"top": 488,
-									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 1
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GU/TE=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGNogw="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 470,
-									"top": 454,
-									"height": 13,
-									"alpha": -1.5707963267948966,
-									"distance": 15,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 1
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GV+mE=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGO18o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 545,
-									"top": 429,
-									"height": 13,
-									"alpha": 0.5235987755982988,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 2
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GW/Jg=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGO18o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 552,
-									"top": 440,
-									"height": 13,
-									"alpha": 0.7853981633974483,
-									"distance": 40,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 2
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GXYiM=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGO18o="
-									},
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 520,
-									"top": 405,
-									"width": 21.68359375,
-									"height": 13,
-									"alpha": -0.5235987755982988,
-									"distance": 25,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"edgePosition": 2,
-									"text": "0..1"
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GYWRI=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGPK1o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 434,
-									"top": 526,
-									"height": 13,
-									"alpha": -0.5235987755982988,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									}
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GZC3k=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGPK1o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 444,
-									"top": 534,
-									"height": 13,
-									"alpha": -0.7853981633974483,
-									"distance": 40,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									}
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBlxz1GaiaI=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGPK1o="
-									},
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 404,
-									"top": 508,
-									"width": 19.5126953125,
-									"height": 13,
-									"alpha": 0.5235987755982988,
-									"distance": 25,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"text": "0..*"
-								},
-								{
-									"_type": "UMLQualifierCompartmentView",
-									"_id": "AAAAAAGdWBlxz1GbgOA=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGO18o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": true,
-									"left": -56,
-									"top": 8,
-									"width": 10,
-									"height": 10
-								},
-								{
-									"_type": "UMLQualifierCompartmentView",
-									"_id": "AAAAAAGdWBlxz1Gcd5I=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBlxzlGRFs8="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBlxzlGPK1o="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": true,
-									"left": -56,
-									"top": 8,
-									"width": 10,
-									"height": 10
-								}
-							],
-							"font": "Arial;13;0",
-							"parentStyle": false,
-							"head": {
-								"$ref": "AAAAAAGdV+ZiHBE47NI="
-							},
-							"tail": {
-								"$ref": "AAAAAAGdV+D0EA2Esjo="
-							},
-							"lineStyle": 1,
-							"points": "555:407;405:538",
-							"showVisibility": true,
-							"nameLabel": {
-								"$ref": "AAAAAAGdWBlxzlGSQIQ="
-							},
-							"stereotypeLabel": {
-								"$ref": "AAAAAAGdWBlxzlGTaTk="
-							},
-							"propertyLabel": {
-								"$ref": "AAAAAAGdWBlxz1GU/TE="
-							},
-							"showEndOrder": "hide",
-							"tailRoleNameLabel": {
-								"$ref": "AAAAAAGdWBlxz1GV+mE="
-							},
-							"tailPropertyLabel": {
-								"$ref": "AAAAAAGdWBlxz1GW/Jg="
-							},
-							"tailMultiplicityLabel": {
-								"$ref": "AAAAAAGdWBlxz1GXYiM="
-							},
-							"headRoleNameLabel": {
-								"$ref": "AAAAAAGdWBlxz1GYWRI="
-							},
-							"headPropertyLabel": {
-								"$ref": "AAAAAAGdWBlxz1GZC3k="
-							},
-							"headMultiplicityLabel": {
-								"$ref": "AAAAAAGdWBlxz1GaiaI="
-							},
-							"tailQualifiersCompartment": {
-								"$ref": "AAAAAAGdWBlxz1GbgOA="
-							},
-							"headQualifiersCompartment": {
-								"$ref": "AAAAAAGdWBlxz1Gcd5I="
-							}
-						},
-						{
-							"_type": "UMLAssociationView",
 							"_id": "AAAAAAGdWBtyV5DRttI=",
 							"_parent": {
 								"$ref": "AAAAAAFF+qBtyKM79qY="
@@ -5380,7 +7630,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 636,
-									"top": 465,
+									"top": 457,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -5402,7 +7652,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 651,
-									"top": 465,
+									"top": 457,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -5424,7 +7674,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 607,
-									"top": 464,
+									"top": 456,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -5446,7 +7696,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 637,
-									"top": 427,
+									"top": 412,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -5468,7 +7718,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 650,
-									"top": 429,
+									"top": 414,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -5489,7 +7739,7 @@
 									"font": "Arial;13;0",
 									"parentStyle": false,
 									"left": 600,
-									"top": 422,
+									"top": 407,
 									"width": 21.68359375,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -5604,7 +7854,7 @@
 								"$ref": "AAAAAAGdV+D0EA2Esjo="
 							},
 							"lineStyle": 1,
-							"points": "623:407;621:535",
+							"points": "623:392;621:535",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWBtyV5DSoWE="
@@ -5663,8 +7913,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 839,
-									"top": 469,
+									"left": 838,
+									"top": 461,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 15,
@@ -5685,8 +7935,8 @@
 									"visible": null,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 847,
-									"top": 457,
+									"left": 846,
+									"top": 449,
 									"height": 13,
 									"alpha": 1.5707963267948966,
 									"distance": 30,
@@ -5707,8 +7957,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 822,
-									"top": 494,
+									"left": 821,
+									"top": 486,
 									"height": 13,
 									"alpha": -1.5707963267948966,
 									"distance": 15,
@@ -5729,8 +7979,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 741,
-									"top": 403,
+									"left": 730,
+									"top": 388,
 									"height": 13,
 									"alpha": 0.5235987755982988,
 									"distance": 30,
@@ -5751,8 +8001,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 751,
-									"top": 393,
+									"left": 740,
+									"top": 378,
 									"height": 13,
 									"alpha": 0.7853981633974483,
 									"distance": 40,
@@ -5772,8 +8022,8 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 712,
-									"top": 423,
+									"left": 701,
+									"top": 408,
 									"width": 21.68359375,
 									"height": 13,
 									"alpha": -0.5235987755982988,
@@ -5796,8 +8046,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 937,
-									"top": 536,
+									"left": 945,
+									"top": 534,
 									"height": 13,
 									"alpha": -0.5235987755982988,
 									"distance": 30,
@@ -5817,8 +8067,8 @@
 									"visible": false,
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 943,
-									"top": 523,
+									"left": 951,
+									"top": 522,
 									"height": 13,
 									"alpha": -0.7853981633974483,
 									"distance": 40,
@@ -5837,8 +8087,8 @@
 									},
 									"font": "Arial;13;0",
 									"parentStyle": false,
-									"left": 917,
-									"top": 561,
+									"left": 925,
+									"top": 560,
 									"width": 19.5126953125,
 									"height": 13,
 									"alpha": 0.5235987755982988,
@@ -5888,7 +8138,7 @@
 								"$ref": "AAAAAAGdV+D0EA2Esjo="
 							},
 							"lineStyle": 1,
-							"points": "712:407;951:569",
+							"points": "701:392;959:568",
 							"showVisibility": true,
 							"nameLabel": {
 								"$ref": "AAAAAAGdWBuWDJcJSSI="
@@ -5923,291 +8173,6 @@
 							},
 							"headQualifiersCompartment": {
 								"$ref": "AAAAAAGdWBuWDZcTn8U="
-							}
-						},
-						{
-							"_type": "UMLAssociationView",
-							"_id": "AAAAAAGdWBuv5pyC3Pc=",
-							"_parent": {
-								"$ref": "AAAAAAFF+qBtyKM79qY="
-							},
-							"model": {
-								"$ref": "AAAAAAGdWBuv5Zx+dcM="
-							},
-							"subViews": [
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyD0Ts=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx+dcM="
-									},
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1048,
-									"top": 167,
-									"width": 97.1953125,
-									"height": 13,
-									"alpha": 0.7273657343237255,
-									"distance": 83.54639429682169,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 1,
-									"text": "+spending_limits"
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyEpCM=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx+dcM="
-									},
-									"visible": null,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1069,
-									"top": 105,
-									"height": 13,
-									"alpha": 1.5707963267948966,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 1
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyF2+E=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx+dcM="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1025,
-									"top": 106,
-									"height": 13,
-									"alpha": -1.5707963267948966,
-									"distance": 15,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 1
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyG1mM=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx/x+Y="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 738,
-									"top": 91,
-									"height": 13,
-									"alpha": 0.5235987755982988,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 2
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyHei4=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx/x+Y="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 741,
-									"top": 77,
-									"height": 13,
-									"alpha": 0.7853981633974483,
-									"distance": 40,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 2
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyICn8=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx/x+Y="
-									},
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 731,
-									"top": 118,
-									"width": 7.22998046875,
-									"height": 13,
-									"alpha": -0.5235987755982988,
-									"distance": 25,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"edgePosition": 2,
-									"text": "1"
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyJhK0=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5ZyA4Uk="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1057,
-									"top": 494,
-									"height": 13,
-									"alpha": -0.5235987755982988,
-									"distance": 30,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									}
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyKDKc=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5ZyA4Uk="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1071,
-									"top": 492,
-									"height": 13,
-									"alpha": -0.7853981633974483,
-									"distance": 40,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									}
-								},
-								{
-									"_type": "EdgeLabelView",
-									"_id": "AAAAAAGdWBuv5pyLAHk=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5ZyA4Uk="
-									},
-									"font": "Arial;13;0",
-									"parentStyle": false,
-									"left": 1021,
-									"top": 499,
-									"width": 19.5126953125,
-									"height": 13,
-									"alpha": 0.5235987755982988,
-									"distance": 25,
-									"hostEdge": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"text": "0..*"
-								},
-								{
-									"_type": "UMLQualifierCompartmentView",
-									"_id": "AAAAAAGdWBuv5pyM5dQ=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5Zx/x+Y="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": true,
-									"width": 10,
-									"height": 10
-								},
-								{
-									"_type": "UMLQualifierCompartmentView",
-									"_id": "AAAAAAGdWBuv5pyNo14=",
-									"_parent": {
-										"$ref": "AAAAAAGdWBuv5pyC3Pc="
-									},
-									"model": {
-										"$ref": "AAAAAAGdWBuv5ZyA4Uk="
-									},
-									"visible": false,
-									"font": "Arial;13;0",
-									"parentStyle": true,
-									"width": 10,
-									"height": 10
-								}
-							],
-							"font": "Arial;13;0",
-							"parentStyle": false,
-							"head": {
-								"$ref": "AAAAAAGdV+1TmBdy3DY="
-							},
-							"tail": {
-								"$ref": "AAAAAAGdV9wPpg0aOL8="
-							},
-							"lineStyle": 1,
-							"points": "713:112;1040:112;1043:527",
-							"showVisibility": true,
-							"nameLabel": {
-								"$ref": "AAAAAAGdWBuv5pyD0Ts="
-							},
-							"stereotypeLabel": {
-								"$ref": "AAAAAAGdWBuv5pyEpCM="
-							},
-							"propertyLabel": {
-								"$ref": "AAAAAAGdWBuv5pyF2+E="
-							},
-							"showEndOrder": "hide",
-							"tailRoleNameLabel": {
-								"$ref": "AAAAAAGdWBuv5pyG1mM="
-							},
-							"tailPropertyLabel": {
-								"$ref": "AAAAAAGdWBuv5pyHei4="
-							},
-							"tailMultiplicityLabel": {
-								"$ref": "AAAAAAGdWBuv5pyICn8="
-							},
-							"headRoleNameLabel": {
-								"$ref": "AAAAAAGdWBuv5pyJhK0="
-							},
-							"headPropertyLabel": {
-								"$ref": "AAAAAAGdWBuv5pyKDKc="
-							},
-							"headMultiplicityLabel": {
-								"$ref": "AAAAAAGdWBuv5pyLAHk="
-							},
-							"tailQualifiersCompartment": {
-								"$ref": "AAAAAAGdWBuv5pyM5dQ="
-							},
-							"headQualifiersCompartment": {
-								"$ref": "AAAAAAGdWBuv5pyNo14="
 							}
 						}
 					]
@@ -6319,6 +8284,66 @@
 						},
 						{
 							"_type": "UMLAssociation",
+							"_id": "copilot-wallet-activities-assoc",
+							"_parent": {
+								"$ref": "AAAAAAGdV9wPow0YV+c="
+							},
+							"name": "activities",
+							"end1": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallet-activities-assoc-end1",
+								"_parent": {
+									"$ref": "copilot-wallet-activities-assoc"
+								},
+								"reference": {
+									"$ref": "AAAAAAGdV9wPow0YV+c="
+								},
+								"multiplicity": "1"
+							},
+							"end2": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallet-activities-assoc-end2",
+								"_parent": {
+									"$ref": "copilot-wallet-activities-assoc"
+								},
+								"reference": {
+									"$ref": "copilot-walletactivities-class"
+								},
+								"multiplicity": "0..*"
+							}
+						},
+						{
+							"_type": "UMLAssociation",
+							"_id": "copilot-wallet-spendings-assoc",
+							"_parent": {
+								"$ref": "AAAAAAGdV9wPow0YV+c="
+							},
+							"name": "spendings",
+							"end1": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallet-spendings-assoc-end1",
+								"_parent": {
+									"$ref": "copilot-wallet-spendings-assoc"
+								},
+								"reference": {
+									"$ref": "AAAAAAGdV9wPow0YV+c="
+								},
+								"multiplicity": "1"
+							},
+							"end2": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallet-spendings-assoc-end2",
+								"_parent": {
+									"$ref": "copilot-wallet-spendings-assoc"
+								},
+								"reference": {
+									"$ref": "copilot-walletspending-class"
+								},
+								"multiplicity": "0..*"
+							}
+						},
+						{
+							"_type": "UMLAssociation",
 							"_id": "AAAAAAGdWCS1q8iTwYc=",
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
@@ -6352,7 +8377,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "UUID id"
+							"name": "UUID id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6360,7 +8386,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "String user_id"
+							"name": "String user_id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6368,7 +8395,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "String name"
+							"name": "String name",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6376,7 +8404,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "String currency_code"
+							"name": "String currency_code",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6384,7 +8413,17 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "Decimal balance"
+							"name": "Decimal balance",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-wallet-default-wallet-attr",
+							"_parent": {
+								"$ref": "AAAAAAGdV9wPow0YV+c="
+							},
+							"name": "Boolean default_wallet",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6392,7 +8431,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "Boolean is_active"
+							"name": "Boolean is_active",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6400,7 +8440,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "DateTime created_at"
+							"name": "DateTime created_at",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6408,7 +8449,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV9wPow0YV+c="
 							},
-							"name": "DateTime update_at"
+							"name": "DateTime update_at",
+							"type": ""
 						}
 					]
 				},
@@ -6420,35 +8462,6 @@
 					},
 					"name": "WalletBeneficiary",
 					"ownedElements": [
-						{
-							"_type": "UMLAssociation",
-							"_id": "AAAAAAGdWBlxzlGNogw=",
-							"_parent": {
-								"$ref": "AAAAAAGdV+D0EA2CoY0="
-							},
-							"end1": {
-								"_type": "UMLAssociationEnd",
-								"_id": "AAAAAAGdWBlxzlGO18o=",
-								"_parent": {
-									"$ref": "AAAAAAGdWBlxzlGNogw="
-								},
-								"reference": {
-									"$ref": "AAAAAAGdV+D0EA2CoY0="
-								},
-								"multiplicity": "0..1"
-							},
-							"end2": {
-								"_type": "UMLAssociationEnd",
-								"_id": "AAAAAAGdWBlxzlGPK1o=",
-								"_parent": {
-									"$ref": "AAAAAAGdWBlxzlGNogw="
-								},
-								"reference": {
-									"$ref": "AAAAAAGdV+ZiGxE2qWk="
-								},
-								"multiplicity": "0..*"
-							}
-						},
 						{
 							"_type": "UMLAssociation",
 							"_id": "AAAAAAGdWBtyVpDN1p4=",
@@ -6515,7 +8528,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+D0EA2CoY0="
 							},
-							"name": "UUID id"
+							"name": "UUID id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6523,15 +8537,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+D0EA2CoY0="
 							},
-							"name": "String user_id"
-						},
-						{
-							"_type": "UMLAttribute",
-							"_id": "AAAAAAGdV+Kagw289t8=",
-							"_parent": {
-								"$ref": "AAAAAAGdV+D0EA2CoY0="
-							},
-							"name": "String beneficiary_user_id"
+							"name": "String user_id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6539,7 +8546,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+D0EA2CoY0="
 							},
-							"name": "String label"
+							"name": "String label",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6547,7 +8555,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+D0EA2CoY0="
 							},
-							"name": "DateTime created_at"
+							"name": "DateTime created_at",
+							"type": ""
 						}
 					]
 				},
@@ -6585,6 +8594,33 @@
 									"$ref": "AAAAAAGdV/XgAx2kxxY="
 								}
 							}
+						},
+						{
+							"_type": "UMLAssociation",
+							"_id": "copilot-wallettransaction-transactionby-assoc",
+							"_parent": {
+								"$ref": "AAAAAAGdV+ZiGxE2qWk="
+							},
+							"end1": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallettransaction-transactionby-assoc-end1",
+								"_parent": {
+									"$ref": "copilot-wallettransaction-transactionby-assoc"
+								},
+								"reference": {
+									"$ref": "AAAAAAGdV+ZiGxE2qWk="
+								}
+							},
+							"end2": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-wallettransaction-transactionby-assoc-end2",
+								"_parent": {
+									"$ref": "copilot-wallettransaction-transactionby-assoc"
+								},
+								"reference": {
+									"$ref": "copilot-transactionby-enum"
+								}
+							}
 						}
 					],
 					"attributes": [
@@ -6594,7 +8630,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "UUID id"
+							"name": "UUID id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6602,7 +8639,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "UUID reference"
+							"name": "UUID reference",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6610,7 +8648,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "String user_id"
+							"name": "String user_id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6618,7 +8657,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "TransactionType transaction_type"
+							"name": "TransactionType transaction_type",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6626,7 +8666,17 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "String beneficiary_user_id"
+							"name": "TransactionBy transaction_by",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-wallettransaction-amount-attr",
+							"_parent": {
+								"$ref": "AAAAAAGdV+ZiGxE2qWk="
+							},
+							"name": "Decimal amount",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6634,7 +8684,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "Decimal balance_before"
+							"name": "Decimal balance_before",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6642,7 +8693,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "Decimal balance_after"
+							"name": "Decimal balance_after",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6650,7 +8702,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+ZiGxE2qWk="
 							},
-							"name": "DateTime created_at"
+							"name": "DateTime created_at",
+							"type": ""
 						}
 					]
 				},
@@ -6697,7 +8750,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "UUID id"
+							"name": "UUID id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6705,7 +8759,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "String actor_user_id"
+							"name": "String actor_user_id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6713,7 +8768,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "String beneficiary_user_id"
+							"name": "String beneficiary_user_id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6721,7 +8777,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "ActionType action_type"
+							"name": "ActionType action_type",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6729,7 +8786,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "Decimal amount"
+							"name": "Decimal amount",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6737,7 +8795,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "String currency_code"
+							"name": "String currency_code",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6745,7 +8804,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "UUID reference"
+							"name": "UUID reference",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6753,7 +8813,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "JSON metadata"
+							"name": "JSON metadata",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6761,7 +8822,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+mymBRWU8Y="
 							},
-							"name": "DateTime created_at"
+							"name": "DateTime created_at",
+							"type": ""
 						}
 					]
 				},
@@ -6853,6 +8915,66 @@
 									"$ref": "AAAAAAGdV/4WXjEaaAE="
 								}
 							}
+						},
+						{
+							"_type": "UMLAssociation",
+							"_id": "copilot-spendinglimit-walletspending-assoc",
+							"_parent": {
+								"$ref": "AAAAAAGdV+1Tlxdw2qA="
+							},
+							"name": "spendings",
+							"end1": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-spendinglimit-walletspending-assoc-end1",
+								"_parent": {
+									"$ref": "copilot-spendinglimit-walletspending-assoc"
+								},
+								"reference": {
+									"$ref": "AAAAAAGdV+1Tlxdw2qA="
+								},
+								"multiplicity": "1"
+							},
+							"end2": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-spendinglimit-walletspending-assoc-end2",
+								"_parent": {
+									"$ref": "copilot-spendinglimit-walletspending-assoc"
+								},
+								"reference": {
+									"$ref": "copilot-walletspending-class"
+								},
+								"multiplicity": "0..*"
+							}
+						},
+						{
+							"_type": "UMLAssociation",
+							"_id": "copilot-spendinglimit-customperiod-assoc",
+							"_parent": {
+								"$ref": "AAAAAAGdV+1Tlxdw2qA="
+							},
+							"name": "custom_period",
+							"end1": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-spendinglimit-customperiod-assoc-end1",
+								"_parent": {
+									"$ref": "copilot-spendinglimit-customperiod-assoc"
+								},
+								"reference": {
+									"$ref": "AAAAAAGdV+1Tlxdw2qA="
+								},
+								"multiplicity": "1"
+							},
+							"end2": {
+								"_type": "UMLAssociationEnd",
+								"_id": "copilot-spendinglimit-customperiod-assoc-end2",
+								"_parent": {
+									"$ref": "copilot-spendinglimit-customperiod-assoc"
+								},
+								"reference": {
+									"$ref": "copilot-customperiod-class"
+								},
+								"multiplicity": "0..1"
+							}
 						}
 					],
 					"attributes": [
@@ -6862,7 +8984,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "UUID id"
+							"name": "UUID id",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6870,7 +8993,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "Scope scope"
+							"name": "Scope scope",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6878,7 +9002,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "LimitType limit_type"
+							"name": "LimitType limit_type",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6886,7 +9011,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "Period period"
+							"name": "Period period",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6894,7 +9020,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "Decimal amount"
+							"name": "Decimal amount",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6902,7 +9029,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "Decimal percentage"
+							"name": "Decimal percentage",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6910,7 +9038,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "DateTime active_from"
+							"name": "DateTime active_from",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6918,7 +9047,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "DateTime active_to"
+							"name": "DateTime active_to",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6926,7 +9056,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "Boolean is_active"
+							"name": "Boolean is_active",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6934,7 +9065,8 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "DateTime created_at"
+							"name": "DateTime created_at",
+							"type": ""
 						},
 						{
 							"_type": "UMLAttribute",
@@ -6942,7 +9074,199 @@
 							"_parent": {
 								"$ref": "AAAAAAGdV+1Tlxdw2qA="
 							},
-							"name": "DateTime updated_at"
+							"name": "DateTime updated_at",
+							"type": ""
+						}
+					]
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "copilot-walletactivities-class",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "WalletActivities",
+					"attributes": [
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-id-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "UUID id",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-actor-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "String actor_user_id",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-type-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "String activity_type",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-amount-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "Decimal amount",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-reference-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "UUID reference",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-metadata-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "JSON metadata",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletactivities-created-at-attr",
+							"_parent": {
+								"$ref": "copilot-walletactivities-class"
+							},
+							"name": "DateTime created_at",
+							"type": ""
+						}
+					]
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "copilot-walletspending-class",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "WalletSpending",
+					"attributes": [
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletspending-id-attr",
+							"_parent": {
+								"$ref": "copilot-walletspending-class"
+							},
+							"name": "UUID id",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletspending-user-attr",
+							"_parent": {
+								"$ref": "copilot-walletspending-class"
+							},
+							"name": "String user_id",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletspending-amount-attr",
+							"_parent": {
+								"$ref": "copilot-walletspending-class"
+							},
+							"name": "Decimal amount",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-walletspending-created-at-attr",
+							"_parent": {
+								"$ref": "copilot-walletspending-class"
+							},
+							"name": "DateTime created_at",
+							"type": ""
+						}
+					]
+				},
+				{
+					"_type": "UMLClass",
+					"_id": "copilot-customperiod-class",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "CustomPeriod",
+					"attributes": [
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-customperiod-id-attr",
+							"_parent": {
+								"$ref": "copilot-customperiod-class"
+							},
+							"name": "UUID id",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-customperiod-start-attr",
+							"_parent": {
+								"$ref": "copilot-customperiod-class"
+							},
+							"name": "DateTime start_at",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-customperiod-end-attr",
+							"_parent": {
+								"$ref": "copilot-customperiod-class"
+							},
+							"name": "DateTime end_at",
+							"type": ""
+						},
+						{
+							"_type": "UMLAttribute",
+							"_id": "copilot-customperiod-created-at-attr",
+							"_parent": {
+								"$ref": "copilot-customperiod-class"
+							},
+							"name": "DateTime created_at",
+							"type": ""
+						}
+					]
+				},
+				{
+					"_type": "UMLEnumeration",
+					"_id": "copilot-transactionby-enum",
+					"_parent": {
+						"$ref": "AAAAAAFF+qBWK6M3Z8Y="
+					},
+					"name": "TransactionBy",
+					"literals": [
+						{
+							"_type": "UMLEnumerationLiteral",
+							"_id": "copilot-transactionby-owner-literal",
+							"_parent": {
+								"$ref": "copilot-transactionby-enum"
+							},
+							"name": "OWNER"
+						},
+						{
+							"_type": "UMLEnumerationLiteral",
+							"_id": "copilot-transactionby-beneficiary-literal",
+							"_parent": {
+								"$ref": "copilot-transactionby-enum"
+							},
+							"name": "BENEFICIARY"
 						}
 					]
 				},
