@@ -13,45 +13,44 @@ __all__ = [
 	"InvalidWalletCurrencyError",
 	"InvalidWalletSpendingLimitError",
 	"InvalidWalletTransferError",
+	"WALLET_ERROR_MESSAGES",
 	"WalletError",
+	"WalletErrorCode",
 	"WalletBeneficiaryNotFoundError",
 	"WalletBeneficiaryHistoryService",
 	"WalletBeneficiaryService",
-	"WalletOwnershipError",
 	"WalletDebitService",
+	"WalletOwnershipError",
 	"WalletService",
 	"WalletSpendingLimitExceededError",
 	"WalletSpendingLimitService",
 	"WalletTransferService",
 	"WalletTransactionHistoryService",
 	"WalletTopUpService",
+	"get_wallet_error_message",
+	"serialize_wallet_error",
 ]
 
 
 def __getattr__(name: str):
-	"""Resolve public package exports lazily.
+	"""Resolve public package exports lazily."""
 
-	Args:
-		name: Exported attribute requested from the ``wallets`` package.
-
-	Returns:
-		The corresponding service class or exception type.
-
-	Raises:
-		AttributeError: If ``name`` is not part of the public package API.
-	"""
 	if name in {
-		"WalletError",
-		"InvalidWalletAmountError",
-		"WalletOwnershipError",
+		"DuplicateWalletBeneficiaryError",
 		"InsufficientWalletBalanceError",
+		"InvalidWalletAmountError",
 		"InvalidWalletBeneficiaryError",
 		"InvalidWalletCurrencyError",
-		"DuplicateWalletBeneficiaryError",
-		"WalletBeneficiaryNotFoundError",
-		"InvalidWalletTransferError",
 		"InvalidWalletSpendingLimitError",
+		"InvalidWalletTransferError",
+		"WALLET_ERROR_MESSAGES",
+		"WalletError",
+		"WalletErrorCode",
+		"WalletBeneficiaryNotFoundError",
+		"WalletOwnershipError",
 		"WalletSpendingLimitExceededError",
+		"get_wallet_error_message",
+		"serialize_wallet_error",
 	}:
 		from .exceptions import (
 			DuplicateWalletBeneficiaryError,
@@ -61,35 +60,43 @@ def __getattr__(name: str):
 			InvalidWalletCurrencyError,
 			InvalidWalletSpendingLimitError,
 			InvalidWalletTransferError,
+			WALLET_ERROR_MESSAGES,
 			WalletError,
+			WalletErrorCode,
 			WalletBeneficiaryNotFoundError,
 			WalletOwnershipError,
 			WalletSpendingLimitExceededError,
+			get_wallet_error_message,
+			serialize_wallet_error,
 		)
 
 		return {
 			"DuplicateWalletBeneficiaryError": DuplicateWalletBeneficiaryError,
 			"InsufficientWalletBalanceError": InsufficientWalletBalanceError,
-			"WalletError": WalletError,
 			"InvalidWalletAmountError": InvalidWalletAmountError,
 			"InvalidWalletBeneficiaryError": InvalidWalletBeneficiaryError,
 			"InvalidWalletCurrencyError": InvalidWalletCurrencyError,
 			"InvalidWalletSpendingLimitError": InvalidWalletSpendingLimitError,
 			"InvalidWalletTransferError": InvalidWalletTransferError,
+			"WALLET_ERROR_MESSAGES": WALLET_ERROR_MESSAGES,
+			"WalletError": WalletError,
+			"WalletErrorCode": WalletErrorCode,
 			"WalletBeneficiaryNotFoundError": WalletBeneficiaryNotFoundError,
 			"WalletOwnershipError": WalletOwnershipError,
 			"WalletSpendingLimitExceededError": WalletSpendingLimitExceededError,
+			"get_wallet_error_message": get_wallet_error_message,
+			"serialize_wallet_error": serialize_wallet_error,
 		}[name]
 
 	if name in {
-		"WalletService",
-		"WalletTopUpService",
-		"WalletDebitService",
-		"WalletTransactionHistoryService",
 		"WalletBeneficiaryHistoryService",
 		"WalletBeneficiaryService",
-		"WalletTransferService",
+		"WalletDebitService",
+		"WalletService",
 		"WalletSpendingLimitService",
+		"WalletTransferService",
+		"WalletTransactionHistoryService",
+		"WalletTopUpService",
 	}:
 		from .services import (
 			WalletBeneficiaryHistoryService,

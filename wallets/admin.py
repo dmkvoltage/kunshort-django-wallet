@@ -1,12 +1,30 @@
 from django.contrib import admin
 
-from .models import Wallet, WalletBeneficiary, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
+from .models import (
+    CustomPeriod,
+    Wallet,
+    WalletActivities,
+    WalletBeneficiary,
+    WalletBeneficiaryActivity,
+    WalletSpending,
+    WalletSpendingLimit,
+    WalletTransaction,
+)
 
 
 @admin.register(Wallet)
 class WalletAdmin(admin.ModelAdmin):
-    list_display = ("id", "user_id", "name", "currency_code", "balance", "is_active", "created_at")
-    list_filter = ("currency_code", "is_active", "created_at")
+    list_display = (
+        "id",
+        "user_id",
+        "name",
+        "currency_code",
+        "balance",
+        "default_wallet",
+        "is_active",
+        "created_at",
+    )
+    list_filter = ("currency_code", "default_wallet", "is_active", "created_at")
     search_fields = ("id", "user_id", "name", "currency_code")
     ordering = ("-created_at",)
 
@@ -19,24 +37,41 @@ class WalletTransactionAdmin(admin.ModelAdmin):
         "wallet",
         "related_wallet",
         "user_id",
+        "transaction_by",
         "transaction_type",
-        "beneficiary",
-        "beneficiary_user_id",
         "amount",
         "balance_before",
         "balance_after",
         "created_at",
     )
-    list_filter = ("transaction_type", "created_at")
-    search_fields = ("id", "wallet__id", "user_id", "beneficiary_user_id")
+    list_filter = ("transaction_by", "transaction_type", "created_at")
+    search_fields = ("id", "wallet__id", "user_id")
     ordering = ("-created_at",)
 
 
 @admin.register(WalletBeneficiary)
 class WalletBeneficiaryAdmin(admin.ModelAdmin):
-    list_display = ("id", "wallet", "user_id", "beneficiary_user_id", "label", "created_at")
-    list_filter = ("created_at",)
-    search_fields = ("id", "wallet__id", "user_id", "beneficiary_user_id", "label")
+    list_display = ("id", "wallet", "user_id", "label", "is_owner", "created_at")
+    list_filter = ("is_owner", "created_at")
+    search_fields = ("id", "wallet__id", "user_id", "label")
+    ordering = ("-created_at",)
+
+
+@admin.register(WalletActivities)
+class WalletActivitiesAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "wallet",
+        "user_id",
+        "transaction_by",
+        "action_type",
+        "amount",
+        "currency_code",
+        "reference",
+        "created_at",
+    )
+    list_filter = ("transaction_by", "action_type", "currency_code", "created_at")
+    search_fields = ("id", "wallet__id", "user_id")
     ordering = ("-created_at",)
 
 
@@ -45,7 +80,8 @@ class WalletBeneficiaryActivityAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "wallet",
-        "beneficiary_user_id",
+        "beneficiary",
+        "user_id",
         "action_type",
         "amount",
         "currency_code",
@@ -53,7 +89,7 @@ class WalletBeneficiaryActivityAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("action_type", "currency_code", "created_at")
-    search_fields = ("id", "wallet__id", "beneficiary_user_id", "actor_user_id")
+    search_fields = ("id", "wallet__id", "beneficiary__user_id", "user_id")
     ordering = ("-created_at",)
 
 
@@ -72,5 +108,30 @@ class WalletSpendingLimitAdmin(admin.ModelAdmin):
         "created_at",
     )
     list_filter = ("scope", "limit_type", "period", "is_active", "created_at")
-    search_fields = ("id", "wallet__id", "beneficiary__beneficiary_user_id")
+    search_fields = ("id", "wallet__id", "beneficiary__user_id")
     ordering = ("-created_at",)
+
+
+@admin.register(WalletSpending)
+class WalletSpendingAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "wallet",
+        "spending_limit",
+        "transaction",
+        "user_id",
+        "transaction_by",
+        "amount",
+        "created_at",
+    )
+    list_filter = ("transaction_by", "created_at")
+    search_fields = ("id", "wallet__id", "user_id")
+    ordering = ("-created_at",)
+
+
+@admin.register(CustomPeriod)
+class CustomPeriodAdmin(admin.ModelAdmin):
+    list_display = ("id", "spending_limit", "starts_at", "ends_at", "created_at")
+    list_filter = ("created_at",)
+    search_fields = ("id", "spending_limit__id")
+    ordering = ("starts_at",)

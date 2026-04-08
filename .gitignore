@@ -9,3 +9,4 @@ db.sqlite3
 
 # Virtual environments
 .venv
+/db.sqlite3
