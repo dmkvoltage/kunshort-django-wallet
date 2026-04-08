@@ -273,28 +273,40 @@ class WalletService(BaseWalletService):
     """Create and retrieve wallet records."""
 
     @staticmethod
+    def _generate_default_wallet_name(*, normalized_user_id: str) -> str:
+        existing_names = set(Wallet.objects.for_user(normalized_user_id).values_list("name", flat=True))
+        suffix = 1
+        while True:
+            generated_name = f"PrimaryWallet{suffix:03d}"
+            if generated_name not in existing_names:
+                return generated_name
+            suffix += 1
+
+    @staticmethod
     @transaction.atomic
     def create_wallet(
         *,
         user_id: UserIdentifier,
-        name: str,
+        name: str | None = None,
         currency_code: str = "XAF",
-        balance: Decimal | int | str = Decimal("0.00"),
-        default_wallet: bool | None = None,
     ) -> Wallet:
         normalized_user_id = WalletService.normalize_user_id(user_id)
         existing_wallets = Wallet.objects.select_for_update().for_user(normalized_user_id)
         is_first_wallet = not existing_wallets.exists()
-        should_be_default = True if is_first_wallet else bool(default_wallet)
+        should_be_default = is_first_wallet
+
+        cleaned_name = (name or "").strip() or WalletService._generate_default_wallet_name(
+            normalized_user_id=normalized_user_id
+        )
 
         if should_be_default:
             existing_wallets.filter(default_wallet=True).update(default_wallet=False)
 
         wallet = Wallet(
             user_id=normalized_user_id,
-            name=name.strip(),
+            name=cleaned_name,
             currency_code=WalletService.normalize_currency_code(currency_code),
-            balance=WalletService.normalize_amount(balance, allow_zero=True),
+            balance=Decimal("0.00"),
             default_wallet=should_be_default,
         )
         wallet.full_clean()

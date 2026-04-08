@@ -125,7 +125,7 @@ class Wallet(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     user_id = models.CharField(max_length=255, db_index=True)
     name = models.CharField(max_length=100)
-    currency_code = models.CharField(max_length=3)
+    currency_code = models.CharField(max_length=3, default="XAF")
     balance = models.DecimalField(max_digits=18, decimal_places=2, default=Decimal("0.00"))
     is_active = models.BooleanField(default=True)
     default_wallet = models.BooleanField(default=False)

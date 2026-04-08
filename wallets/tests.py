@@ -4,7 +4,9 @@ from uuid import uuid4
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
+from rest_framework.test import APITestCase
 
 from wallets.exceptions import (
     WALLET_ERROR_MESSAGES,
@@ -43,6 +45,22 @@ from wallets.services import (
 )
 
 
+def create_funded_wallet(
+    *,
+    user_id,
+    name: str | None = None,
+    currency_code: str = "XAF",
+    balance: str | Decimal | None = None,
+):
+    wallet = WalletService.create_wallet(user_id=user_id, name=name, currency_code=currency_code)
+    if balance is not None and Decimal(str(balance)) > Decimal("0.00"):
+        wallet.balance = Decimal(str(balance)).quantize(Decimal("0.01"))
+        wallet.full_clean()
+        wallet.save(update_fields=["balance", "updated_at"])
+        wallet.refresh_from_db()
+    return wallet
+
+
 class WalletServiceTests(TestCase):
     def test_create_wallet_accepts_currency_code_and_marks_first_wallet_default(self):
         user_id = uuid4()
@@ -65,17 +83,35 @@ class WalletServiceTests(TestCase):
         with self.assertRaises(InvalidWalletCurrencyError):
             WalletService.create_wallet(user_id=uuid4(), name="Primary", currency_code="naira")
 
-    def test_first_wallet_is_default_even_when_default_wallet_false_is_supplied(self):
+    def test_first_wallet_is_default(self):
         user_id = uuid4()
 
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", default_wallet=False)
+        wallet = WalletService.create_wallet(user_id=user_id, name="Primary")
 
         self.assertTrue(wallet.default_wallet)
+
+    def test_second_wallet_defaults_to_false_when_a_default_wallet_exists(self):
+        user_id = uuid4()
+        WalletService.create_wallet(user_id=user_id, name="Primary")
+
+        wallet = WalletService.create_wallet(user_id=user_id, name="Savings")
+
+        self.assertFalse(wallet.default_wallet)
+
+    def test_create_wallet_generates_name_when_missing(self):
+        user_id = uuid4()
+
+        first_wallet = WalletService.create_wallet(user_id=user_id)
+        second_wallet = WalletService.create_wallet(user_id=user_id)
+
+        self.assertEqual(first_wallet.name, "PrimaryWallet001")
+        self.assertEqual(second_wallet.name, "PrimaryWallet002")
+        self.assertEqual(first_wallet.balance, Decimal("0.00"))
 
     def test_set_default_wallet_unsets_previous_default_wallet(self):
         user_id = uuid4()
         first_wallet = WalletService.create_wallet(user_id=user_id, name="Primary")
-        second_wallet = WalletService.create_wallet(user_id=user_id, name="Savings", default_wallet=False)
+        second_wallet = WalletService.create_wallet(user_id=user_id, name="Savings")
 
         WalletService.set_default_wallet(user_id=user_id, wallet_id=second_wallet.id)
 
@@ -119,10 +155,118 @@ class WalletExceptionTests(TestCase):
         self.assertEqual(context.exception.code, WalletErrorCode.INVALID_AMOUNT_FORMAT)
 
 
+class WalletApiTests(APITestCase):
+    def test_openapi_schema_endpoint_is_available(self):
+        response = self.client.get(reverse("api-schema"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("openapi", response.data)
+
+    def test_swagger_ui_endpoint_is_available(self):
+        response = self.client.get(reverse("api-docs"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("swagger-ui", response.content.decode().lower())
+
+    def test_create_wallet_api_returns_created_wallet(self):
+        response = self.client.post(
+            reverse("api-wallets"),
+            {
+                "user_id": str(uuid4()),
+                "name": "Primary Wallet",
+                "currency_code": "xaf",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["currency_code"], "XAF")
+        self.assertTrue(response.data["default_wallet"])
+        self.assertEqual(response.data["balance"], "0.00")
+
+    def test_create_wallet_api_generates_name_when_missing(self):
+        response = self.client.post(
+            reverse("api-wallets"),
+            {
+                "user_id": str(uuid4()),
+                "currency_code": "xaf",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["name"], "PrimaryWallet001")
+
+    def test_top_up_api_returns_coded_error_payload(self):
+        response = self.client.post(
+            reverse("api-wallet-top-up"),
+            {
+                "user_id": str(uuid4()),
+                "wallet_id": str(uuid4()),
+                "amount": "invalid",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"]["code"], 400)
+
+    def test_wallet_beneficiary_and_transfer_apis_work_together(self):
+        owner_id = uuid4()
+        beneficiary_id = uuid4()
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_id, name="Destination", balance="10.00")
+
+        add_response = self.client.post(
+            reverse("api-beneficiaries"),
+            {
+                "user_id": str(owner_id),
+                "wallet_id": str(source_wallet.id),
+                "beneficiary_user_id": str(beneficiary_id),
+                "label": "Friend",
+            },
+            format="json",
+        )
+        transfer_response = self.client.post(
+            reverse("api-wallet-transfer"),
+            {
+                "user_id": str(owner_id),
+                "source_wallet_id": str(source_wallet.id),
+                "beneficiary_user_id": str(beneficiary_id),
+                "destination_wallet_id": str(destination_wallet.id),
+                "amount": "25.00",
+            },
+            format="json",
+        )
+
+        self.assertEqual(add_response.status_code, 201)
+        self.assertEqual(transfer_response.status_code, 200)
+        self.assertEqual(transfer_response.data["source_transaction"]["transaction_type"], "transfer_out")
+
+    def test_set_wallet_spending_limit_api_creates_rule(self):
+        owner_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
+
+        response = self.client.post(
+            reverse("api-wallet-spending-limits"),
+            {
+                "user_id": str(owner_id),
+                "wallet_id": str(wallet.id),
+                "limit_type": WalletSpendingLimit.LimitType.AMOUNT,
+                "period": WalletSpendingLimit.Period.DAILY,
+                "amount": "40.00",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["limit_type"], WalletSpendingLimit.LimitType.AMOUNT)
+
+
 class WalletTopUpServiceTests(TestCase):
     def test_top_up_wallet_updates_balance_for_wallet_owner(self):
         user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", balance="10.00")
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="10.00")
 
         updated_wallet = WalletTopUpService.top_up_wallet(user_id=user_id, wallet_id=wallet.id, amount="5.50")
 
@@ -157,7 +301,7 @@ class WalletTopUpServiceTests(TestCase):
 class WalletDebitServiceTests(TestCase):
     def test_debit_wallet_updates_balance_and_records_spending(self):
         user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", balance="50.00")
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="50.00")
         WalletSpendingLimitService.set_wallet_spending_limit(
             user_id=user_id,
             wallet_id=wallet.id,
@@ -175,7 +319,7 @@ class WalletDebitServiceTests(TestCase):
 
     def test_debit_wallet_rejects_when_balance_is_insufficient(self):
         user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", balance="10.00")
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="10.00")
 
         with self.assertRaises(InsufficientWalletBalanceError):
             WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="15.00")
@@ -184,7 +328,7 @@ class WalletDebitServiceTests(TestCase):
 class WalletTransactionHistoryServiceTests(TestCase):
     def test_list_wallet_history_returns_wallet_transactions(self):
         user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", balance="100.00")
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="100.00")
         WalletTopUpService.top_up_wallet(user_id=user_id, wallet_id=wallet.id, amount="50.00")
         WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="10.00")
 
@@ -197,8 +341,8 @@ class WalletTransactionHistoryServiceTests(TestCase):
     def test_list_beneficiary_wallet_history_filters_by_single_wallet_user_id(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -316,8 +460,8 @@ class WalletTransferServiceTests(TestCase):
     def test_owner_transfer_to_beneficiary_moves_balance_and_records_history(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -351,8 +495,8 @@ class WalletTransferServiceTests(TestCase):
     def test_beneficiary_can_transfer_and_is_marked_as_transaction_by_beneficiary(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -374,8 +518,8 @@ class WalletTransferServiceTests(TestCase):
         owner_id = uuid4()
         outsider_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -395,8 +539,8 @@ class WalletTransferServiceTests(TestCase):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
         another_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        wrong_destination_wallet = WalletService.create_wallet(user_id=another_user_id, name="Wrong", balance="20.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        wrong_destination_wallet = create_funded_wallet(user_id=another_user_id, name="Wrong", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -416,7 +560,7 @@ class WalletTransferServiceTests(TestCase):
 class WalletSpendingLimitServiceTests(TestCase):
     def test_set_wallet_spending_limit_updates_existing_rule(self):
         owner_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
 
         first_limit = WalletSpendingLimitService.set_wallet_spending_limit(
             user_id=owner_id,
@@ -437,7 +581,7 @@ class WalletSpendingLimitServiceTests(TestCase):
     def test_update_beneficiary_spending_limit_updates_existing_rule_by_id(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=wallet.id,
@@ -474,8 +618,8 @@ class WalletSpendingLimitServiceTests(TestCase):
     def test_transfer_to_beneficiary_enforces_wallet_per_transaction_limit(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="10.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="10.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -500,8 +644,8 @@ class WalletSpendingLimitServiceTests(TestCase):
     def test_transfer_to_beneficiary_enforces_beneficiary_limit_for_beneficiary_actor(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        source_wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="10.00")
+        source_wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="10.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=source_wallet.id,
@@ -528,7 +672,7 @@ class WalletSpendingLimitServiceTests(TestCase):
         owner_id = uuid4()
         first_beneficiary_user_id = uuid4()
         second_beneficiary_user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Source", balance="200.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Source", balance="200.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=wallet.id,
@@ -561,7 +705,7 @@ class WalletSpendingLimitServiceTests(TestCase):
 
     def test_set_custom_wallet_limit_creates_custom_period(self):
         owner_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
         now = timezone.now()
 
         spending_limit = WalletSpendingLimitService.set_wallet_spending_limit(
@@ -578,7 +722,7 @@ class WalletSpendingLimitServiceTests(TestCase):
 
     def test_set_custom_wallet_limit_requires_valid_window(self):
         owner_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
         now = timezone.now()
 
         with self.assertRaises(InvalidWalletSpendingLimitError):
@@ -597,8 +741,8 @@ class WalletBeneficiaryHistoryServiceTests(TestCase):
     def test_list_beneficiary_history_returns_recorded_actions_for_wallet_user(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=wallet.id,
@@ -637,8 +781,8 @@ class WalletBeneficiaryHistoryServiceTests(TestCase):
     def test_list_beneficiary_spending_history_filters_to_spending_actions(self):
         owner_id = uuid4()
         beneficiary_user_id = uuid4()
-        wallet = WalletService.create_wallet(user_id=owner_id, name="Primary", balance="100.00")
-        destination_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Destination", balance="20.00")
         WalletBeneficiaryService.add_beneficiary(
             user_id=owner_id,
             wallet_id=wallet.id,

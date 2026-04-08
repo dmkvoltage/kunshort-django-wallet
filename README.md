@@ -30,6 +30,9 @@ It provides wallet creation, beneficiary management, transfers, spending limits,
 - A single user can create multiple wallets
 - Wallet names are unique per user
 - Wallet currency is stored as a normalized 3-letter code such as `XAF` or `USD`
+- Wallets always start with a `0.00` balance at creation time
+- If `currency_code` is not supplied during creation, `XAF` is used
+- If `name` is omitted during creation, a generated name such as `PrimaryWallet001` is used
 - The first wallet for a user is always created as the default wallet
 - Only one wallet per user can be marked as the default wallet at a time
 
@@ -81,6 +84,96 @@ uv run python manage.py create_system_wallets --wallet-name "Primary Wallet" --c
 
 The command reads users from Django's active auth user model via `get_user_model()` and only creates a wallet for users who do not already have one.
 
+## Test API
+
+The project now includes a DRF-based test API for exercising the wallet services before packaging the module.
+
+- DRF is enabled in the Django project for development and testing.
+- OpenAPI schema generation is provided by `drf-spectacular`.
+- The API implementation lives in `wallets/api.py` so the test surface stays in one file.
+- All routes are mounted under `/api/`.
+- Wallet-domain failures return the same numeric error codes documented in this README.
+
+Start the server with:
+
+```bash
+uv sync
+uv run python manage.py runserver
+```
+
+Open the interactive documentation at:
+
+```text
+http://127.0.0.1:8000/api/docs/
+```
+
+The raw OpenAPI schema is available at:
+
+```text
+http://127.0.0.1:8000/api/schema/
+```
+
+Example request:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/wallets/ \
+	-H "Content-Type: application/json" \
+	-d '{
+		"user_id": "user-123",
+		"name": "Primary Wallet",
+		"currency_code": "XAF"
+	}'
+```
+
+### API endpoints
+
+#### Wallets
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/wallets/?user_id=...` | List wallets for a user |
+| `POST` | `/api/wallets/` | Create a wallet with zero opening balance |
+| `POST` | `/api/wallets/default/` | Set a wallet as default |
+| `POST` | `/api/wallets/top-up/` | Top up a wallet |
+| `POST` | `/api/wallets/debit/` | Debit a wallet |
+| `GET` | `/api/wallets/history/?user_id=...&wallet_id=...` | List wallet transaction history |
+| `GET` | `/api/wallets/user-history/?user_id=...` | List all transactions for a user |
+| `GET` | `/api/wallets/activities/?user_id=...&wallet_id=...` | List wallet-wide activity logs |
+
+#### Beneficiaries
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/wallets/beneficiaries/?user_id=...&wallet_id=...` | List beneficiaries for a wallet |
+| `POST` | `/api/wallets/beneficiaries/` | Add a beneficiary |
+| `POST` | `/api/wallets/beneficiaries/remove/` | Remove a non-owner beneficiary |
+| `GET` | `/api/wallets/beneficiary-wallet-history/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List beneficiary transactions inside one wallet |
+| `GET` | `/api/wallets/beneficiary-activities/?user_id=...&wallet_id=...` | List beneficiary activity logs |
+| `GET` | `/api/wallets/beneficiary-spending-history/?user_id=...&wallet_id=...` | List beneficiary spending-related activities |
+
+#### Transfers
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST` | `/api/wallets/transfers/` | Transfer funds from a wallet to a beneficiary-owned destination wallet |
+
+#### Spending limits
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/api/wallets/spending-limits/?user_id=...&wallet_id=...` | List wallet-level and beneficiary-level limits for a wallet |
+| `POST` | `/api/wallets/spending-limits/` | Create or update a wallet-level spending limit |
+| `POST` | `/api/wallets/spending-limits/update/` | Update a wallet-level spending limit by id |
+| `GET` | `/api/wallets/beneficiary-spending-limits/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List spending limits for one beneficiary |
+| `POST` | `/api/wallets/beneficiary-spending-limits/` | Create or update a beneficiary-level spending limit |
+| `POST` | `/api/wallets/beneficiary-spending-limits/update/` | Update a beneficiary-level spending limit by id |
+
+### API response notes
+
+- Successful responses return plain JSON objects or `{ "results": [...] }` collections.
+- Wallet-domain business errors return the documented wallet error payload with numeric codes.
+- Basic request-validation failures return a generic request error payload from DRF-style validation handling.
+
 ## Example service usage
 
 ```python
@@ -101,8 +194,8 @@ from wallets.exceptions import serialize_wallet_error
 
 wallet = WalletService.create_wallet(
 	user_id=uuid4(),
-	name="Primary Wallet",
-	currency_code="XAF",
+	name="Primary Wallet",  # optional
+	currency_code="XAF",   # optional, defaults to XAF
 )
 
 wallets = WalletService.list_wallets_for_user(user_id=wallet.user_id)
@@ -205,7 +298,8 @@ except Exception as error:
 
 ## Default wallet rules
 
-- The first wallet created for a user is always the default wallet, even if `default_wallet=False` is supplied.
+- The first wallet created for a user is always the default wallet.
+- Any later wallet created for the same user starts with `default_wallet=False`.
 - A user cannot have two default wallets at the same time.
 - Calling `WalletService.set_default_wallet(...)` makes the requested wallet the default and automatically sets the previous default wallet to `False`.
 
@@ -303,7 +397,7 @@ The wallet module uses numeric codes so clients can localize messages independen
 
 ## Service reference
 
-- `WalletService.create_wallet(...)`: creates a wallet, auto-creates the owner beneficiary, and sets the first wallet as default.
+- `WalletService.create_wallet(...)`: creates a wallet with zero opening balance, auto-creates the owner beneficiary, uses `XAF` when currency is omitted, auto-generates a name when one is not provided, and sets only the first wallet as default.
 - `WalletService.set_default_wallet(...)`: switches the default wallet for a user.
 - `WalletService.list_wallets_for_user(...)`: lists a user’s wallets.
 - `WalletTopUpService.top_up_wallet(...)`: credits a wallet owned by the supplied user.
