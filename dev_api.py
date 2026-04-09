@@ -1,8 +1,9 @@
-"""Single-file DRF API surface for exercising wallet services during development."""
+"""Development-only DRF API surface for exercising wallet services locally."""
 
 from __future__ import annotations
 
 from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
@@ -10,9 +11,9 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .exceptions import WalletError, serialize_wallet_error
-from .models import WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
-from .services import (
+from wallets.exceptions import WalletError, serialize_wallet_error
+from wallets.models import WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
+from wallets.services import (
     WalletBeneficiaryHistoryService,
     WalletBeneficiaryService,
     WalletDebitService,

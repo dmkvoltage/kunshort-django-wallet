@@ -1,8 +1,13 @@
-# Wallet Django Module
+# kunshort-django-wallet 1.0.0
 
-This package now runs as a small Django project and includes a dedicated `wallets` app.
+This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
-It provides wallet creation, beneficiary management, transfers, spending limits, activity history, and stable numeric error codes for API consumers.
+The installable package is intended for service consumption: wallet creation, beneficiary management, transfers, spending limits, activity history, and stable numeric error codes.
+
+Package identity:
+- Distribution name: `kunshort-django-wallet`
+- Version: `1.0.0`
+- Python import path: `wallets`
 
 ## What is included
 
@@ -22,7 +27,7 @@ It provides wallet creation, beneficiary management, transfers, spending limits,
 - A `WalletBeneficiaryHistoryService` class for beneficiary audit history and spending history
 - A `WalletTransferService` class for beneficiary-only wallet transfers
 - A `WalletSpendingLimitService` class for wallet and beneficiary spending rules
-- SQLite configuration for local development
+- Local development files for migrations, test execution, and optional API exploration
 
 ## Wallet model behavior
 
@@ -65,13 +70,6 @@ uv run python manage.py migrate
 uv run python manage.py runserver
 ```
 
-You can also use the script entrypoint:
-
-```bash
-uv run manage-wallet migrate
-uv run manage-wallet runserver
-```
-
 ## Management command
 
 Create zero-balance wallets for existing users in the configured Django auth model:
@@ -84,20 +82,43 @@ uv run python manage.py create_system_wallets --wallet-name "Primary Wallet" --c
 
 The command reads users from Django's active auth user model via `get_user_model()` and only creates a wallet for users who do not already have one.
 
-## Test API
+## Build the package
 
-The project now includes a DRF-based test API for exercising the wallet services before packaging the module.
+Build the installable distribution from the project root:
 
-- DRF is enabled in the Django project for development and testing.
-- OpenAPI schema generation is provided by `drf-spectacular`.
-- The API implementation lives in `wallets/api.py` so the test surface stays in one file.
+```bash
+uv build
+```
+
+The built artifacts are written to `dist/`.
+
+The wheel now contains only the reusable `wallets` package. Development-only files such as the local Django project in `config/`, the optional API module, and the repository test suite are kept out of the installable package.
+
+The packaged library still includes `wallets.admin`, so consumers who add `wallets` to `INSTALLED_APPS` will be able to view and manage the wallet models from Django admin.
+
+To consume the package in another Django project:
+
+```bash
+pip install kunshort-django-wallet==1.0.0
+```
+
+Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.
+
+A minimal consumer integration walkthrough is available in `CONSUMER_GUIDE.md`.
+
+## Optional Test API
+
+The repository also includes a DRF-based test API for local development, but it is not part of the packaged library.
+
+- The API implementation lives in `dev_api.py`.
+- DRF and OpenAPI dependencies are optional extras.
 - All routes are mounted under `/api/`.
 - Wallet-domain failures return the same numeric error codes documented in this README.
 
 Start the server with:
 
 ```bash
-uv sync
+uv sync --extra api
 uv run python manage.py runserver
 ```
 
@@ -129,44 +150,44 @@ curl -X POST http://127.0.0.1:8000/api/wallets/ \
 
 #### Wallets
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/wallets/?user_id=...` | List wallets for a user |
-| `POST` | `/api/wallets/` | Create a wallet with zero opening balance |
-| `POST` | `/api/wallets/default/` | Set a wallet as default |
-| `POST` | `/api/wallets/top-up/` | Top up a wallet |
-| `POST` | `/api/wallets/debit/` | Debit a wallet |
-| `GET` | `/api/wallets/history/?user_id=...&wallet_id=...` | List wallet transaction history |
-| `GET` | `/api/wallets/user-history/?user_id=...` | List all transactions for a user |
-| `GET` | `/api/wallets/activities/?user_id=...&wallet_id=...` | List wallet-wide activity logs |
+| Method | Path                                                 | Purpose                                   |
+| ------ | ---------------------------------------------------- | ----------------------------------------- |
+| `GET`  | `/api/wallets/?user_id=...`                          | List wallets for a user                   |
+| `POST` | `/api/wallets/`                                      | Create a wallet with zero opening balance |
+| `POST` | `/api/wallets/default/`                              | Set a wallet as default                   |
+| `POST` | `/api/wallets/top-up/`                               | Top up a wallet                           |
+| `POST` | `/api/wallets/debit/`                                | Debit a wallet                            |
+| `GET`  | `/api/wallets/history/?user_id=...&wallet_id=...`    | List wallet transaction history           |
+| `GET`  | `/api/wallets/user-history/?user_id=...`             | List all transactions for a user          |
+| `GET`  | `/api/wallets/activities/?user_id=...&wallet_id=...` | List wallet-wide activity logs            |
 
 #### Beneficiaries
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/wallets/beneficiaries/?user_id=...&wallet_id=...` | List beneficiaries for a wallet |
-| `POST` | `/api/wallets/beneficiaries/` | Add a beneficiary |
-| `POST` | `/api/wallets/beneficiaries/remove/` | Remove a non-owner beneficiary |
-| `GET` | `/api/wallets/beneficiary-wallet-history/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List beneficiary transactions inside one wallet |
-| `GET` | `/api/wallets/beneficiary-activities/?user_id=...&wallet_id=...` | List beneficiary activity logs |
-| `GET` | `/api/wallets/beneficiary-spending-history/?user_id=...&wallet_id=...` | List beneficiary spending-related activities |
+| Method | Path                                                                                         | Purpose                                         |
+| ------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `GET`  | `/api/wallets/beneficiaries/?user_id=...&wallet_id=...`                                      | List beneficiaries for a wallet                 |
+| `POST` | `/api/wallets/beneficiaries/`                                                                | Add a beneficiary                               |
+| `POST` | `/api/wallets/beneficiaries/remove/`                                                         | Remove a non-owner beneficiary                  |
+| `GET`  | `/api/wallets/beneficiary-wallet-history/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List beneficiary transactions inside one wallet |
+| `GET`  | `/api/wallets/beneficiary-activities/?user_id=...&wallet_id=...`                             | List beneficiary activity logs                  |
+| `GET`  | `/api/wallets/beneficiary-spending-history/?user_id=...&wallet_id=...`                       | List beneficiary spending-related activities    |
 
 #### Transfers
 
-| Method | Path | Purpose |
-| --- | --- | --- |
+| Method | Path                      | Purpose                                                                |
+| ------ | ------------------------- | ---------------------------------------------------------------------- |
 | `POST` | `/api/wallets/transfers/` | Transfer funds from a wallet to a beneficiary-owned destination wallet |
 
 #### Spending limits
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/wallets/spending-limits/?user_id=...&wallet_id=...` | List wallet-level and beneficiary-level limits for a wallet |
-| `POST` | `/api/wallets/spending-limits/` | Create or update a wallet-level spending limit |
-| `POST` | `/api/wallets/spending-limits/update/` | Update a wallet-level spending limit by id |
-| `GET` | `/api/wallets/beneficiary-spending-limits/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List spending limits for one beneficiary |
-| `POST` | `/api/wallets/beneficiary-spending-limits/` | Create or update a beneficiary-level spending limit |
-| `POST` | `/api/wallets/beneficiary-spending-limits/update/` | Update a beneficiary-level spending limit by id |
+| Method | Path                                                                                          | Purpose                                                     |
+| ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `GET`  | `/api/wallets/spending-limits/?user_id=...&wallet_id=...`                                     | List wallet-level and beneficiary-level limits for a wallet |
+| `POST` | `/api/wallets/spending-limits/`                                                               | Create or update a wallet-level spending limit              |
+| `POST` | `/api/wallets/spending-limits/update/`                                                        | Update a wallet-level spending limit by id                  |
+| `GET`  | `/api/wallets/beneficiary-spending-limits/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List spending limits for one beneficiary                    |
+| `POST` | `/api/wallets/beneficiary-spending-limits/`                                                   | Create or update a beneficiary-level spending limit         |
+| `POST` | `/api/wallets/beneficiary-spending-limits/update/`                                            | Update a beneficiary-level spending limit by id             |
 
 ### API response notes
 
@@ -281,6 +302,28 @@ except Exception as error:
 	payload = serialize_wallet_error(error, flat=True)
 	# {'erc': 303, 'msg': 'Amount must be greater than 0.'}
 ```
+
+## Django admin support
+
+The installable package keeps the admin registrations for all wallet models.
+
+To make the models visible in django-admin in a consuming project:
+
+1. Install the package.
+2. Add `wallets` to `INSTALLED_APPS`.
+3. Ensure `django.contrib.admin` is enabled.
+4. Run `python manage.py migrate`.
+5. Create or use a superuser and open `/admin/`.
+
+The following models are registered in admin:
+- `Wallet`
+- `WalletTransaction`
+- `WalletBeneficiary`
+- `WalletActivities`
+- `WalletBeneficiaryActivity`
+- `WalletSpendingLimit`
+- `WalletSpending`
+- `CustomPeriod`
 
 ## Top-up validation
 
