@@ -37,7 +37,6 @@ class Command(BaseCommand):
                 user_id=normalized_user_id,
                 name=wallet_name,
                 currency_code=currency_code,
-                balance="0.00",
             )
             created_count += 1
 

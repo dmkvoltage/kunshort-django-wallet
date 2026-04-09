@@ -1,10 +1,4 @@
-"""Service layer for the reusable wallet package.
-
-These classes contain the business operations that callers are expected to use
-from application code. Docstrings are intentionally structured so editor hovers
-show the accepted parameters, important validation rules, returned values, and
-main domain exceptions.
-"""
+"""Service layer for the reusable wallet package."""
 
 from __future__ import annotations
 
@@ -13,8 +7,8 @@ from decimal import Decimal, InvalidOperation
 from uuid import UUID, uuid4
 
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Sum
 from django.db import transaction
+from django.db.models import Q, Sum
 from django.utils import timezone
 
 from .exceptions import (
@@ -25,17 +19,22 @@ from .exceptions import (
     InvalidWalletCurrencyError,
     InvalidWalletSpendingLimitError,
     InvalidWalletTransferError,
+    WalletErrorCode,
     WalletBeneficiaryNotFoundError,
     WalletOwnershipError,
     WalletSpendingLimitExceededError,
 )
 from .models import (
+    CustomPeriod,
     Wallet,
+    WalletActivities,
+    WalletActivitiesQuerySet,
     WalletBeneficiary,
     WalletBeneficiaryActivity,
     WalletBeneficiaryActivityQuerySet,
     WalletBeneficiaryQuerySet,
     WalletQuerySet,
+    WalletSpending,
     WalletSpendingLimit,
     WalletSpendingLimitQuerySet,
     WalletTransaction,
@@ -47,48 +46,18 @@ UserIdentifier = UUID | str | int
 
 
 class BaseWalletService:
-    """Shared validation, normalization, and record-creation helpers.
-
-    This base class is not normally called directly by consumers. Its methods
-    are reused by the public service classes to keep business rules consistent.
-    """
+    """Shared validation, normalization, and record-creation helpers."""
 
     @staticmethod
     def normalize_user_id(user_id: UserIdentifier) -> str:
-        """Normalize an external user identifier to the stored string form.
-
-        Args:
-            user_id: Any supported external identifier type.
-
-        Returns:
-            The normalized identifier persisted on wallet records.
-        """
         return str(user_id)
 
     @staticmethod
-    def normalize_amount(
-        amount: Decimal | int | str,
-        *,
-        allow_zero: bool,
-    ) -> Decimal:
-        """Validate and normalize a monetary amount to two decimal places.
-
-        Args:
-            amount: Raw amount supplied by a caller.
-            allow_zero: When ``True``, ``0.00`` is accepted; otherwise the value
-                must be strictly greater than zero.
-
-        Returns:
-            A quantized decimal amount.
-
-        Raises:
-            InvalidWalletAmountError: If the amount is missing, malformed, or
-                outside the allowed range.
-        """
+    def normalize_amount(amount: Decimal | int | str, *, allow_zero: bool) -> Decimal:
         try:
             normalized_amount = Decimal(str(amount))
         except (InvalidOperation, ValueError, TypeError) as error:
-            raise InvalidWalletAmountError("Amount must be a valid decimal value.") from error
+            raise InvalidWalletAmountError(code=WalletErrorCode.INVALID_AMOUNT_FORMAT) from error
 
         if allow_zero:
             is_invalid = normalized_amount < Decimal("0.00")
@@ -96,98 +65,70 @@ class BaseWalletService:
             is_invalid = normalized_amount <= Decimal("0.00")
 
         if is_invalid:
-            comparator = "greater than or equal to" if allow_zero else "greater than"
-            raise InvalidWalletAmountError(f"Amount must be {comparator} 0.")
+            raise InvalidWalletAmountError(
+                code=(
+                    WalletErrorCode.INVALID_AMOUNT_NEGATIVE
+                    if allow_zero
+                    else WalletErrorCode.INVALID_AMOUNT_NON_POSITIVE
+                )
+            )
 
         return normalized_amount.quantize(Decimal("0.01"))
 
     @staticmethod
     def normalize_percentage(percentage: Decimal | int | str) -> Decimal:
-        """Validate and normalize a percentage value.
-
-        Args:
-            percentage: Raw percentage supplied by a caller.
-
-        Returns:
-            A quantized decimal percentage in the range ``0 < x <= 100``.
-
-        Raises:
-            InvalidWalletSpendingLimitError: If the percentage is malformed or
-                falls outside the accepted range.
-        """
         try:
             normalized_percentage = Decimal(str(percentage))
         except (InvalidOperation, ValueError, TypeError) as error:
-            raise InvalidWalletSpendingLimitError("Percentage must be a valid decimal value.") from error
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.INVALID_PERCENTAGE_FORMAT) from error
 
         normalized_percentage = normalized_percentage.quantize(Decimal("0.01"))
         if normalized_percentage <= Decimal("0.00") or normalized_percentage > Decimal("100.00"):
-            raise InvalidWalletSpendingLimitError("Percentage must be greater than 0 and at most 100.")
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.INVALID_PERCENTAGE_RANGE)
 
         return normalized_percentage
 
     @staticmethod
     def normalize_currency_code(currency_code: str) -> str:
-        """Normalize a wallet currency code.
-
-        The current implementation uppercases the value and maps known aliases,
-        such as ``CFA`` to ``XAF``.
-
-        Args:
-            currency_code: Currency code supplied by the caller.
-
-        Returns:
-            A normalized 3-letter currency code.
-
-        Raises:
-            InvalidWalletCurrencyError: If the value is not a valid 3-letter
-                alphabetic currency code.
-        """
         normalized_currency_code = currency_code.strip().upper()
-        currency_aliases = {
-            "CFA": "XAF",
-        }
+        currency_aliases = {"CFA": "XAF"}
         normalized_currency_code = currency_aliases.get(normalized_currency_code, normalized_currency_code)
 
         if len(normalized_currency_code) != 3 or not normalized_currency_code.isalpha():
-            raise InvalidWalletCurrencyError("Currency code must be a valid 3-letter alphabetic code.")
+            raise InvalidWalletCurrencyError(code=WalletErrorCode.INVALID_CURRENCY_CODE)
 
         return normalized_currency_code
 
     @staticmethod
-    def get_wallet_for_user(
-        *,
-        wallet_id: UUID | str,
-        user_id: UserIdentifier,
-        for_update: bool = False,
-    ) -> Wallet:
-        """Fetch a wallet and verify that it belongs to the supplied user.
-
-        Args:
-            wallet_id: Primary key of the wallet to load.
-            user_id: External identifier of the expected wallet owner.
-            for_update: When ``True``, apply ``select_for_update()`` so the row
-                can be safely modified inside an atomic transaction.
-
-        Returns:
-            The matching wallet record.
-
-        Raises:
-            Wallet.DoesNotExist: If no wallet matches ``wallet_id``.
-            WalletOwnershipError: If the wallet exists but belongs to another
-                user.
-        """
+    def get_wallet_for_user(*, wallet_id: UUID | str, user_id: UserIdentifier, for_update: bool = False) -> Wallet:
         normalized_user_id = BaseWalletService.normalize_user_id(user_id)
         wallet_queryset = Wallet.objects
-
         if for_update:
             wallet_queryset = wallet_queryset.select_for_update()
 
         wallet = wallet_queryset.get(pk=wallet_id)
         if wallet.user_id != normalized_user_id:
-            raise WalletOwnershipError("Wallet does not belong to the supplied user.")
+            raise WalletOwnershipError(code=WalletErrorCode.WALLET_OWNERSHIP_MISMATCH)
 
         return wallet
+
+    @staticmethod
+    def get_wallet_participant_for_wallet(
+        *,
+        wallet: Wallet,
+        participant_user_id: UserIdentifier,
+        for_update: bool = False,
+    ) -> WalletBeneficiary:
+        normalized_participant_user_id = BaseWalletService.normalize_user_id(participant_user_id)
+        beneficiary_queryset = WalletBeneficiary.objects
+        if for_update:
+            beneficiary_queryset = beneficiary_queryset.select_for_update()
+
+        beneficiary = beneficiary_queryset.for_wallet(wallet.id).filter(user_id=normalized_participant_user_id).first()
+        if beneficiary is None:
+            raise WalletBeneficiaryNotFoundError(code=WalletErrorCode.BENEFICIARY_NOT_FOUND)
+
+        return beneficiary
 
     @staticmethod
     def get_beneficiary_for_wallet(
@@ -196,33 +137,11 @@ class BaseWalletService:
         beneficiary_user_id: UserIdentifier,
         for_update: bool = False,
     ) -> WalletBeneficiary:
-        """Fetch a beneficiary attached to a wallet.
-
-        Args:
-            wallet: Source wallet whose beneficiaries should be searched.
-            beneficiary_user_id: Beneficiary user identifier to match.
-            for_update: When ``True``, lock matching rows for update.
-
-        Returns:
-            The matching beneficiary record.
-
-        Raises:
-            WalletBeneficiaryNotFoundError: If the beneficiary is not attached to
-                the supplied wallet.
-        """
-        normalized_beneficiary_user_id = BaseWalletService.normalize_user_id(beneficiary_user_id)
-        beneficiary_queryset = WalletBeneficiary.objects
-
-        if for_update:
-            beneficiary_queryset = beneficiary_queryset.select_for_update()
-
-        beneficiary = beneficiary_queryset.for_wallet(wallet.id).filter(
-            beneficiary_user_id=normalized_beneficiary_user_id,
-        ).first()
-        if beneficiary is None:
-            raise WalletBeneficiaryNotFoundError("Beneficiary is not attached to the supplied wallet.")
-
-        return beneficiary
+        return BaseWalletService.get_wallet_participant_for_wallet(
+            wallet=wallet,
+            participant_user_id=beneficiary_user_id,
+            for_update=for_update,
+        )
 
     @staticmethod
     def get_destination_wallet_for_beneficiary(
@@ -231,78 +150,62 @@ class BaseWalletService:
         beneficiary_user_id: UserIdentifier,
         for_update: bool = False,
     ) -> Wallet:
-        """Fetch a destination wallet and verify it belongs to a beneficiary.
-
-        Args:
-            destination_wallet_id: Wallet that should receive a transfer.
-            beneficiary_user_id: Beneficiary user identifier expected to own the
-                destination wallet.
-            for_update: When ``True``, lock the wallet row for update.
-
-        Returns:
-            The destination wallet.
-
-        Raises:
-            Wallet.DoesNotExist: If the destination wallet does not exist.
-            InvalidWalletTransferError: If the destination wallet belongs to a
-                different user.
-        """
         normalized_beneficiary_user_id = BaseWalletService.normalize_user_id(beneficiary_user_id)
         wallet_queryset = Wallet.objects
-
         if for_update:
             wallet_queryset = wallet_queryset.select_for_update()
 
         destination_wallet = wallet_queryset.get(pk=destination_wallet_id)
         if destination_wallet.user_id != normalized_beneficiary_user_id:
-            raise InvalidWalletTransferError("Destination wallet does not belong to the beneficiary user.")
+            raise InvalidWalletTransferError(code=WalletErrorCode.TRANSFER_DESTINATION_WALLET_MISMATCH)
 
         return destination_wallet
+
+    @staticmethod
+    def get_transaction_by(*, wallet: Wallet, actor_user_id: str) -> str:
+        if actor_user_id == wallet.user_id:
+            return WalletTransaction.TransactionBy.OWNER
+        return WalletTransaction.TransactionBy.BENEFICIARY
+
+    @staticmethod
+    def ensure_owner_beneficiary(*, wallet: Wallet) -> WalletBeneficiary:
+        owner_beneficiary, created = WalletBeneficiary.objects.get_or_create(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            defaults={
+                "label": wallet.name,
+                "is_owner": True,
+            },
+        )
+        if not owner_beneficiary.is_owner:
+            owner_beneficiary.is_owner = True
+            if created is False and not owner_beneficiary.label:
+                owner_beneficiary.label = wallet.name
+            owner_beneficiary.full_clean()
+            owner_beneficiary.save(update_fields=["is_owner", "label"] if owner_beneficiary.label else ["is_owner"])
+
+        return owner_beneficiary
 
     @staticmethod
     def create_transaction_record(
         *,
         wallet: Wallet,
+        user_id: UserIdentifier,
+        transaction_by: str,
         transaction_type: str,
         amount: Decimal,
         balance_before: Decimal,
         balance_after: Decimal,
         reference: UUID | None = None,
         related_wallet: Wallet | None = None,
-        beneficiary: WalletBeneficiary | None = None,
-        beneficiary_user_id: UserIdentifier | None = None,
     ) -> WalletTransaction:
-        """Create and persist a wallet ledger entry.
-
-        Args:
-            wallet: Wallet whose history will receive the transaction.
-            transaction_type: One of ``WalletTransaction.TransactionType``.
-            amount: Amount applied by the transaction.
-            balance_before: Wallet balance before the transaction.
-            balance_after: Wallet balance after the transaction.
-            reference: Optional shared reference for linked transactions.
-            related_wallet: Optional counterparty wallet for transfers.
-            beneficiary: Optional beneficiary relation involved in the event.
-            beneficiary_user_id: Optional beneficiary user snapshot to persist
-                even if no beneficiary relation is attached.
-
-        Returns:
-            The saved transaction record.
-        """
-        normalized_beneficiary_user_id = ""
-        if beneficiary is not None:
-            normalized_beneficiary_user_id = beneficiary.beneficiary_user_id
-        elif beneficiary_user_id is not None:
-            normalized_beneficiary_user_id = BaseWalletService.normalize_user_id(beneficiary_user_id)
-
         wallet_transaction = WalletTransaction(
             reference=reference or uuid4(),
             wallet=wallet,
-            user_id=wallet.user_id,
+            user_id=BaseWalletService.normalize_user_id(user_id),
+            transaction_by=transaction_by,
             related_wallet=related_wallet,
             transaction_type=transaction_type,
-            beneficiary=beneficiary,
-            beneficiary_user_id=normalized_beneficiary_user_id,
             amount=amount,
             balance_before=balance_before,
             balance_after=balance_after,
@@ -312,115 +215,136 @@ class BaseWalletService:
         return wallet_transaction
 
     @staticmethod
-    def create_beneficiary_activity_record(
+    def create_wallet_activity_record(
         *,
         wallet: Wallet,
-        actor_user_id: UserIdentifier,
-        beneficiary_user_id: UserIdentifier,
+        user_id: UserIdentifier,
+        transaction_by: str,
         action_type: str,
-        beneficiary: WalletBeneficiary | None = None,
         amount: Decimal | None = None,
         reference: UUID | None = None,
         metadata: dict | None = None,
-    ) -> WalletBeneficiaryActivity:
-        """Create and persist a beneficiary activity audit record.
-
-        Args:
-            wallet: Wallet in which the activity occurred.
-            actor_user_id: User that performed the action.
-            beneficiary_user_id: Beneficiary user identifier tied to the event.
-            action_type: One of ``WalletBeneficiaryActivity.ActionType``.
-            beneficiary: Optional beneficiary relation involved in the event.
-            amount: Optional amount for money-related events.
-            reference: Optional reference linking related records.
-            metadata: Optional free-form structured metadata.
-
-        Returns:
-            The saved beneficiary activity record.
-        """
-        beneficiary_activity = WalletBeneficiaryActivity(
+        transaction_record: WalletTransaction | None = None,
+        spending_limit: WalletSpendingLimit | None = None,
+    ) -> WalletActivities:
+        wallet_activity = WalletActivities(
             wallet=wallet,
-            beneficiary=beneficiary,
-            actor_user_id=BaseWalletService.normalize_user_id(actor_user_id),
-            beneficiary_user_id=BaseWalletService.normalize_user_id(beneficiary_user_id),
+            transaction=transaction_record,
+            spending_limit=spending_limit,
+            user_id=BaseWalletService.normalize_user_id(user_id),
+            transaction_by=transaction_by,
             action_type=action_type,
             amount=amount,
             currency_code=wallet.currency_code,
             reference=reference,
             metadata=metadata or {},
         )
-        beneficiary_activity.full_clean()
-        beneficiary_activity.save()
-        return beneficiary_activity
+        wallet_activity.full_clean()
+        wallet_activity.save()
+        return wallet_activity
+
+    @staticmethod
+    def create_wallet_beneficiary_activity_record(
+        *,
+        wallet: Wallet,
+        user_id: UserIdentifier,
+        action_type: str,
+        beneficiary: WalletBeneficiary | None = None,
+        amount: Decimal | None = None,
+        reference: UUID | None = None,
+        metadata: dict | None = None,
+    ) -> WalletBeneficiaryActivity:
+        wallet_beneficiary_activity = WalletBeneficiaryActivity(
+            wallet=wallet,
+            beneficiary=beneficiary,
+            user_id=BaseWalletService.normalize_user_id(user_id),
+            action_type=action_type,
+            amount=amount,
+            currency_code=wallet.currency_code,
+            reference=reference,
+            metadata=metadata or {},
+        )
+        wallet_beneficiary_activity.full_clean()
+        wallet_beneficiary_activity.save()
+        return wallet_beneficiary_activity
 
 
 class WalletService(BaseWalletService):
     """Create and retrieve wallet records."""
 
     @staticmethod
+    def _generate_default_wallet_name(*, normalized_user_id: str) -> str:
+        existing_names = set(Wallet.objects.for_user(normalized_user_id).values_list("name", flat=True))
+        suffix = 1
+        while True:
+            generated_name = f"PrimaryWallet{suffix:03d}"
+            if generated_name not in existing_names:
+                return generated_name
+            suffix += 1
+
+    @staticmethod
     @transaction.atomic
     def create_wallet(
         *,
         user_id: UserIdentifier,
-        name: str,
+        name: str | None = None,
         currency_code: str = "XAF",
-        balance: Decimal | int | str = Decimal("0.00"),
     ) -> Wallet:
-        """Create a wallet for a user.
+        normalized_user_id = WalletService.normalize_user_id(user_id)
+        existing_wallets = Wallet.objects.select_for_update().for_user(normalized_user_id)
+        is_first_wallet = not existing_wallets.exists()
+        should_be_default = is_first_wallet
 
-        Args:
-            user_id: External owner identifier. UUIDs, strings, and integers are
-                accepted and normalized to string storage.
-            name: Wallet name. Must be unique per user after trimming.
-            currency_code: Three-letter wallet currency code. ``CFA`` is
-                normalized to ``XAF``.
-            balance: Optional starting balance. Defaults to ``0.00``.
+        cleaned_name = (name or "").strip() or WalletService._generate_default_wallet_name(
+            normalized_user_id=normalized_user_id
+        )
 
-        Returns:
-            The saved wallet record.
+        if should_be_default:
+            existing_wallets.filter(default_wallet=True).update(default_wallet=False)
 
-        Raises:
-            InvalidWalletAmountError: If the starting balance is invalid.
-            InvalidWalletCurrencyError: If the currency code is invalid.
-            ValidationError: If model validation fails, such as duplicate wallet
-                names per user.
-        """
         wallet = Wallet(
-            user_id=WalletService.normalize_user_id(user_id),
-            name=name.strip(),
+            user_id=normalized_user_id,
+            name=cleaned_name,
             currency_code=WalletService.normalize_currency_code(currency_code),
-            balance=WalletService.normalize_amount(balance, allow_zero=True),
+            balance=Decimal("0.00"),
+            default_wallet=should_be_default,
         )
         wallet.full_clean()
         wallet.save()
+
+        WalletService.ensure_owner_beneficiary(wallet=wallet)
+        WalletService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.WALLET_CREATED,
+            amount=wallet.balance,
+            metadata={"default_wallet": wallet.default_wallet},
+        )
+        return wallet
+
+    @staticmethod
+    @transaction.atomic
+    def set_default_wallet(*, user_id: UserIdentifier, wallet_id: UUID | str) -> Wallet:
+        wallet = WalletService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
+        if wallet.default_wallet:
+            return wallet
+
+        Wallet.objects.select_for_update().for_user(wallet.user_id).exclude(pk=wallet.pk).filter(default_wallet=True).update(
+            default_wallet=False
+        )
+        wallet.default_wallet = True
+        wallet.full_clean()
+        wallet.save(update_fields=["default_wallet", "updated_at"])
         return wallet
 
     @staticmethod
     def list_wallets_for_user(*, user_id: UserIdentifier) -> WalletQuerySet:
-        """Return all wallets owned by a user.
-
-        Args:
-            user_id: External owner identifier.
-
-        Returns:
-            A queryset of wallets for the supplied user.
-        """
         normalized_user_id = WalletService.normalize_user_id(user_id)
         return Wallet.objects.for_user(normalized_user_id)
 
     @staticmethod
     def get_wallet(*, wallet_id: UUID | str) -> Wallet:
-        """Load a wallet by primary key.
-
-        Args:
-            wallet_id: Wallet primary key.
-
-        Returns:
-            The matching wallet.
-
-        Raises:
-            Wallet.DoesNotExist: If no wallet matches the supplied id.
-        """
         return Wallet.objects.get(pk=wallet_id)
 
 
@@ -429,44 +353,32 @@ class WalletTopUpService(BaseWalletService):
 
     @staticmethod
     @transaction.atomic
-    def top_up_wallet(
-        *,
-        user_id: UserIdentifier,
-        wallet_id: UUID | str,
-        amount: Decimal | int | str,
-    ) -> Wallet:
-        """Increase a wallet balance and write a transaction history row.
-
-        Args:
-            user_id: External owner identifier that must own the wallet.
-            wallet_id: Wallet to fund.
-            amount: Positive amount to add.
-
-        Returns:
-            The updated wallet.
-
-        Raises:
-            InvalidWalletAmountError: If the amount is not a positive decimal.
-            WalletOwnershipError: If the wallet belongs to another user.
-        """
+    def top_up_wallet(*, user_id: UserIdentifier, wallet_id: UUID | str, amount: Decimal | int | str) -> Wallet:
         normalized_amount = WalletTopUpService.normalize_amount(amount, allow_zero=False)
-        wallet = WalletTopUpService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletTopUpService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         balance_before = wallet.balance
         balance_after = balance_before + normalized_amount
 
         wallet.balance = balance_after
         wallet.full_clean()
         wallet.save(update_fields=["balance", "updated_at"])
-        WalletTopUpService.create_transaction_record(
+        transaction_record = WalletTopUpService.create_transaction_record(
             wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
             transaction_type=WalletTransaction.TransactionType.TOP_UP,
             amount=normalized_amount,
             balance_before=balance_before,
             balance_after=balance_after,
+        )
+        WalletTopUpService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.TOP_UP,
+            amount=normalized_amount,
+            reference=transaction_record.reference,
+            transaction_record=transaction_record,
         )
         return wallet
 
@@ -476,56 +388,44 @@ class WalletDebitService(BaseWalletService):
 
     @staticmethod
     @transaction.atomic
-    def debit_wallet(
-        *,
-        user_id: UserIdentifier,
-        wallet_id: UUID | str,
-        amount: Decimal | int | str,
-    ) -> Wallet:
-        """Debit a wallet, enforcing ownership, balance, and wallet limits.
-
-        Args:
-            user_id: External owner identifier that must own the wallet.
-            wallet_id: Wallet to debit.
-            amount: Positive amount to remove.
-
-        Returns:
-            The updated wallet.
-
-        Raises:
-            InvalidWalletAmountError: If the amount is invalid.
-            WalletOwnershipError: If the wallet belongs to another user.
-            InsufficientWalletBalanceError: If the wallet does not have enough
-                balance.
-            WalletSpendingLimitExceededError: If an active wallet limit blocks
-                the debit.
-        """
+    def debit_wallet(*, user_id: UserIdentifier, wallet_id: UUID | str, amount: Decimal | int | str) -> Wallet:
         normalized_amount = WalletDebitService.normalize_amount(amount, allow_zero=False)
-        wallet = WalletDebitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletDebitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         balance_before = wallet.balance
 
         if normalized_amount > balance_before:
-            raise InsufficientWalletBalanceError("Wallet balance is insufficient for this debit.")
+            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT)
 
-        WalletSpendingLimitService.validate_spending_limits(
-            wallet=wallet,
-            amount=normalized_amount,
-        )
+        WalletSpendingLimitService.validate_spending_limits(wallet=wallet, amount=normalized_amount)
 
         balance_after = balance_before - normalized_amount
         wallet.balance = balance_after
         wallet.full_clean()
         wallet.save(update_fields=["balance", "updated_at"])
-        WalletDebitService.create_transaction_record(
+        transaction_record = WalletDebitService.create_transaction_record(
             wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
             transaction_type=WalletTransaction.TransactionType.WITHDRAWAL,
             amount=normalized_amount,
             balance_before=balance_before,
             balance_after=balance_after,
+        )
+        WalletDebitService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.WITHDRAWAL,
+            amount=normalized_amount,
+            reference=transaction_record.reference,
+            transaction_record=transaction_record,
+        )
+        WalletSpendingLimitService.record_spending_usage(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            amount=normalized_amount,
+            transaction_record=transaction_record,
         )
         return wallet
 
@@ -540,52 +440,18 @@ class WalletTransactionHistoryService(BaseWalletService):
         wallet_id: UUID | str,
         transaction_type: str | None = None,
     ) -> WalletTransactionQuerySet:
-        """Return transaction history for a wallet owned by a user.
-
-        Args:
-            user_id: Expected wallet owner identifier.
-            wallet_id: Wallet whose history should be returned.
-            transaction_type: Optional transaction type filter.
-
-        Returns:
-            A queryset of matching wallet transactions ordered newest first.
-
-        Raises:
-            WalletOwnershipError: If the wallet does not belong to the supplied
-                user.
-        """
-        wallet = WalletTransactionHistoryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
-        history = WalletTransaction.objects.for_user(wallet.user_id).for_wallet(wallet.id)
-
+        wallet = WalletTransactionHistoryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
+        history = WalletTransaction.objects.for_wallet(wallet.id)
         if transaction_type is not None:
             history = history.filter(transaction_type=transaction_type)
-
         return history
 
     @staticmethod
-    def list_user_history(
-        *,
-        user_id: UserIdentifier,
-        transaction_type: str | None = None,
-    ) -> WalletTransactionQuerySet:
-        """Return all transaction rows recorded for a user.
-
-        Args:
-            user_id: User identifier to filter by.
-            transaction_type: Optional transaction type filter.
-
-        Returns:
-            A queryset of matching transactions across the user's wallets.
-        """
+    def list_user_history(*, user_id: UserIdentifier, transaction_type: str | None = None) -> WalletTransactionQuerySet:
         normalized_user_id = WalletTransactionHistoryService.normalize_user_id(user_id)
         history = WalletTransaction.objects.for_user(normalized_user_id)
-
         if transaction_type is not None:
             history = history.filter(transaction_type=transaction_type)
-
         return history
 
     @staticmethod
@@ -596,33 +462,12 @@ class WalletTransactionHistoryService(BaseWalletService):
         beneficiary_user_id: UserIdentifier,
         transaction_type: str | None = None,
     ) -> WalletTransactionQuerySet:
-        """Return beneficiary-linked wallet transactions for one wallet.
-
-        Args:
-            user_id: Expected owner of the source wallet.
-            wallet_id: Wallet to inspect.
-            beneficiary_user_id: Beneficiary user identifier snapshot to filter
-                by.
-            transaction_type: Optional transaction type filter.
-
-        Returns:
-            A queryset of beneficiary-linked wallet transactions.
-
-        Raises:
-            WalletOwnershipError: If the wallet does not belong to the supplied
-                user.
-        """
-        wallet = WalletTransactionHistoryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
-        history = WalletTransaction.objects.for_wallet(wallet.id).for_beneficiary_user(
+        wallet = WalletTransactionHistoryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
+        history = WalletTransaction.objects.for_wallet(wallet.id).for_user(
             WalletTransactionHistoryService.normalize_user_id(beneficiary_user_id)
         )
-
         if transaction_type is not None:
             history = history.filter(transaction_type=transaction_type)
-
         return history
 
 
@@ -638,40 +483,18 @@ class WalletBeneficiaryService(BaseWalletService):
         beneficiary_user_id: UserIdentifier,
         label: str = "",
     ) -> WalletBeneficiary:
-        """Attach a beneficiary user to a wallet.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet that will own the beneficiary relation.
-            beneficiary_user_id: User identifier to attach as beneficiary.
-            label: Optional human-readable label.
-
-        Returns:
-            The saved beneficiary record.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            InvalidWalletBeneficiaryError: If the owner attempts to add themself
-                as a beneficiary.
-            DuplicateWalletBeneficiaryError: If the beneficiary already exists on
-                the wallet.
-        """
-        wallet = WalletBeneficiaryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         normalized_beneficiary_user_id = WalletBeneficiaryService.normalize_user_id(beneficiary_user_id)
         cleaned_label = label.strip()
 
         if normalized_beneficiary_user_id == wallet.user_id:
-            raise InvalidWalletBeneficiaryError("Wallet owner cannot be added as a beneficiary.")
+            raise InvalidWalletBeneficiaryError(code=WalletErrorCode.OWNER_ALREADY_DEFAULT_BENEFICIARY)
 
         beneficiary = WalletBeneficiary(
             wallet=wallet,
-            user_id=wallet.user_id,
-            beneficiary_user_id=normalized_beneficiary_user_id,
+            user_id=normalized_beneficiary_user_id,
             label=cleaned_label,
+            is_owner=False,
         )
 
         try:
@@ -679,18 +502,27 @@ class WalletBeneficiaryService(BaseWalletService):
             beneficiary.save()
         except ValidationError as error:
             if "__all__" in error.message_dict:
-                raise DuplicateWalletBeneficiaryError("Beneficiary already exists for this wallet.") from error
+                raise DuplicateWalletBeneficiaryError(code=WalletErrorCode.DUPLICATE_BENEFICIARY) from error
             raise
 
-        WalletBeneficiaryService.create_beneficiary_activity_record(
+        WalletBeneficiaryService.create_wallet_activity_record(
             wallet=wallet,
-            actor_user_id=wallet.user_id,
-            beneficiary_user_id=beneficiary.beneficiary_user_id,
-            action_type=WalletBeneficiaryActivity.ActionType.ADDED,
-            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.BENEFICIARY_ADDED,
             metadata={"label": beneficiary.label},
         )
-
+        WalletBeneficiaryService.create_wallet_beneficiary_activity_record(
+            wallet=wallet,
+            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            action_type=WalletBeneficiaryActivity.ActionType.BENEFICIARY_ADDED,
+            metadata={
+                "label": beneficiary.label,
+                "actor_user_id": wallet.user_id,
+                "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
+            },
+        )
         return beneficiary
 
     @staticmethod
@@ -701,65 +533,40 @@ class WalletBeneficiaryService(BaseWalletService):
         wallet_id: UUID | str,
         beneficiary_user_id: UserIdentifier,
     ) -> WalletBeneficiary:
-        """Remove a beneficiary from a wallet.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet from which the beneficiary will be removed.
-            beneficiary_user_id: Beneficiary user identifier to remove.
-
-        Returns:
-            The removed beneficiary instance.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            WalletBeneficiaryNotFoundError: If the beneficiary is not attached to
-                the wallet.
-        """
-        wallet = WalletBeneficiaryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         beneficiary = WalletBeneficiaryService.get_beneficiary_for_wallet(
             wallet=wallet,
             beneficiary_user_id=beneficiary_user_id,
             for_update=True,
         )
-        WalletBeneficiaryService.create_beneficiary_activity_record(
+        if beneficiary.is_owner:
+            raise InvalidWalletBeneficiaryError(code=WalletErrorCode.OWNER_BENEFICIARY_REMOVAL_FORBIDDEN)
+
+        WalletBeneficiaryService.create_wallet_activity_record(
             wallet=wallet,
-            actor_user_id=wallet.user_id,
-            beneficiary_user_id=beneficiary.beneficiary_user_id,
-            action_type=WalletBeneficiaryActivity.ActionType.REMOVED,
-            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.BENEFICIARY_REMOVED,
             metadata={"label": beneficiary.label},
+        )
+        WalletBeneficiaryService.create_wallet_beneficiary_activity_record(
+            wallet=wallet,
+            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            action_type=WalletBeneficiaryActivity.ActionType.BENEFICIARY_REMOVED,
+            metadata={
+                "label": beneficiary.label,
+                "actor_user_id": wallet.user_id,
+                "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
+            },
         )
         beneficiary.delete()
         return beneficiary
 
     @staticmethod
-    def list_wallet_beneficiaries(
-        *,
-        user_id: UserIdentifier,
-        wallet_id: UUID | str,
-    ) -> WalletBeneficiaryQuerySet:
-        """Return beneficiaries attached to a wallet.
-
-        Args:
-            user_id: Expected wallet owner identifier.
-            wallet_id: Wallet whose beneficiaries should be listed.
-
-        Returns:
-            A queryset of beneficiaries attached to the wallet.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-        """
-        wallet = WalletBeneficiaryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
-        return WalletBeneficiary.objects.for_user(wallet.user_id).for_wallet(wallet.id)
+    def list_wallet_beneficiaries(*, user_id: UserIdentifier, wallet_id: UUID | str) -> WalletBeneficiaryQuerySet:
+        wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
+        return WalletBeneficiary.objects.for_wallet(wallet.id)
 
 
 class WalletSpendingLimitService(BaseWalletService):
@@ -779,32 +586,7 @@ class WalletSpendingLimitService(BaseWalletService):
         active_to: datetime | None = None,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
-        """Create or update a wallet-level spending limit rule.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet to protect.
-            limit_type: ``amount`` or ``percentage``.
-            period: Evaluation period such as ``per_transaction`` or ``daily``.
-            amount: Required when ``limit_type`` is ``amount``.
-            percentage: Required when ``limit_type`` is ``percentage``.
-            active_from: Optional lower bound for custom windows.
-            active_to: Optional upper bound for custom windows.
-            is_active: Whether the rule should currently be enforced.
-
-        Returns:
-            The saved wallet-level spending limit.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            InvalidWalletSpendingLimitError: If the rule configuration is
-                inconsistent or unsupported.
-        """
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         return WalletSpendingLimitService._upsert_limit(
             wallet=wallet,
             beneficiary=None,
@@ -834,35 +616,7 @@ class WalletSpendingLimitService(BaseWalletService):
         active_to: datetime | None = None,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
-        """Create or update a beneficiary-scoped spending limit rule.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet whose beneficiary rule is being configured.
-            beneficiary_user_id: Beneficiary user identifier targeted by the
-                rule.
-            limit_type: ``amount`` or ``percentage``.
-            period: Evaluation period such as ``per_transaction`` or ``daily``.
-            amount: Required for amount-based rules.
-            percentage: Required for percentage-based rules.
-            active_from: Optional lower bound for custom windows.
-            active_to: Optional upper bound for custom windows.
-            is_active: Whether the rule is active.
-
-        Returns:
-            The saved beneficiary-scoped spending limit.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            WalletBeneficiaryNotFoundError: If the beneficiary is not attached to
-                the wallet.
-            InvalidWalletSpendingLimitError: If the rule is invalid.
-        """
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         beneficiary = WalletSpendingLimitService.get_beneficiary_for_wallet(
             wallet=wallet,
             beneficiary_user_id=beneficiary_user_id,
@@ -897,39 +651,13 @@ class WalletSpendingLimitService(BaseWalletService):
         active_to: datetime | None = None,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
-        """Update an existing wallet-level spending limit by id.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet that owns the rule.
-            spending_limit_id: Existing rule primary key.
-            limit_type: Updated rule type.
-            period: Updated rule period.
-            amount: Required for amount-based rules.
-            percentage: Required for percentage-based rules.
-            active_from: Optional lower bound for custom windows.
-            active_to: Optional upper bound for custom windows.
-            is_active: Whether the rule remains active.
-
-        Returns:
-            The updated spending limit.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            InvalidWalletSpendingLimitError: If the rule does not belong to the
-                wallet or is not wallet-scoped.
-        """
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         spending_limit = WalletSpendingLimitService._get_spending_limit_for_wallet(
             wallet=wallet,
             spending_limit_id=spending_limit_id,
         )
         if spending_limit.scope != WalletSpendingLimit.Scope.WALLET:
-            raise InvalidWalletSpendingLimitError("The supplied spending limit is not a wallet-level limit.")
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_NOT_WALLET_LEVEL)
 
         return WalletSpendingLimitService._upsert_limit(
             wallet=wallet,
@@ -961,36 +689,7 @@ class WalletSpendingLimitService(BaseWalletService):
         active_to: datetime | None = None,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
-        """Update an existing beneficiary-level spending limit by id.
-
-        Args:
-            user_id: Wallet owner identifier.
-            wallet_id: Wallet that owns the rule.
-            beneficiary_user_id: Beneficiary targeted by the rule.
-            spending_limit_id: Existing rule primary key.
-            limit_type: Updated rule type.
-            period: Updated rule period.
-            amount: Required for amount-based rules.
-            percentage: Required for percentage-based rules.
-            active_from: Optional lower bound for custom windows.
-            active_to: Optional upper bound for custom windows.
-            is_active: Whether the rule remains active.
-
-        Returns:
-            The updated beneficiary-scoped spending limit.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-            WalletBeneficiaryNotFoundError: If the beneficiary is not attached to
-                the wallet.
-            InvalidWalletSpendingLimitError: If the rule is invalid or not
-                beneficiary-scoped.
-        """
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-            for_update=True,
-        )
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         beneficiary = WalletSpendingLimitService.get_beneficiary_for_wallet(
             wallet=wallet,
             beneficiary_user_id=beneficiary_user_id,
@@ -1001,7 +700,7 @@ class WalletSpendingLimitService(BaseWalletService):
             spending_limit_id=spending_limit_id,
         )
         if spending_limit.scope != WalletSpendingLimit.Scope.BENEFICIARY:
-            raise InvalidWalletSpendingLimitError("The supplied spending limit is not a beneficiary-level limit.")
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_NOT_BENEFICIARY_LEVEL)
 
         return WalletSpendingLimitService._upsert_limit(
             wallet=wallet,
@@ -1018,16 +717,8 @@ class WalletSpendingLimitService(BaseWalletService):
         )
 
     @staticmethod
-    def list_wallet_spending_limits(
-        *,
-        user_id: UserIdentifier,
-        wallet_id: UUID | str,
-    ) -> WalletSpendingLimitQuerySet:
-        """Return all spending-limit rules configured for a wallet."""
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
+    def list_wallet_spending_limits(*, user_id: UserIdentifier, wallet_id: UUID | str) -> WalletSpendingLimitQuerySet:
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
         return WalletSpendingLimit.objects.for_wallet(wallet.id)
 
     @staticmethod
@@ -1037,15 +728,8 @@ class WalletSpendingLimitService(BaseWalletService):
         wallet_id: UUID | str,
         beneficiary_user_id: UserIdentifier,
     ) -> WalletSpendingLimitQuerySet:
-        """Return spending-limit rules configured for one beneficiary."""
-        wallet = WalletSpendingLimitService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
-        beneficiary = WalletSpendingLimitService.get_beneficiary_for_wallet(
-            wallet=wallet,
-            beneficiary_user_id=beneficiary_user_id,
-        )
+        wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
+        beneficiary = WalletSpendingLimitService.get_beneficiary_for_wallet(wallet=wallet, beneficiary_user_id=beneficiary_user_id)
         return WalletSpendingLimit.objects.for_wallet(wallet.id).for_beneficiary(beneficiary.id)
 
     @staticmethod
@@ -1055,32 +739,40 @@ class WalletSpendingLimitService(BaseWalletService):
         amount: Decimal,
         beneficiary: WalletBeneficiary | None = None,
     ) -> None:
-        """Raise if a spend would violate any active wallet or beneficiary rule.
-
-        Args:
-            wallet: Wallet against which limits should be evaluated.
-            amount: Amount about to be spent.
-            beneficiary: Optional beneficiary involved in the spend.
-
-        Raises:
-            WalletSpendingLimitExceededError: If the requested amount would break
-                an active rule.
-        """
         now = timezone.now()
-        applicable_limits = WalletSpendingLimitService._get_active_limits(
-            wallet=wallet,
-            beneficiary=beneficiary,
-            now=now,
-        )
-
+        applicable_limits = WalletSpendingLimitService._get_active_limits(wallet=wallet, beneficiary=beneficiary, now=now)
         for spending_limit in applicable_limits:
             WalletSpendingLimitService._assert_limit_not_exceeded(
                 spending_limit=spending_limit,
                 wallet=wallet,
                 amount=amount,
-                beneficiary=beneficiary,
                 now=now,
             )
+
+    @staticmethod
+    def record_spending_usage(
+        *,
+        wallet: Wallet,
+        user_id: UserIdentifier,
+        transaction_by: str,
+        amount: Decimal,
+        transaction_record: WalletTransaction,
+        beneficiary: WalletBeneficiary | None = None,
+    ) -> None:
+        now = timezone.now()
+        applicable_limits = WalletSpendingLimitService._get_active_limits(wallet=wallet, beneficiary=beneficiary, now=now)
+        normalized_user_id = WalletSpendingLimitService.normalize_user_id(user_id)
+        for spending_limit in applicable_limits:
+            wallet_spending = WalletSpending(
+                wallet=wallet,
+                spending_limit=spending_limit,
+                transaction=transaction_record,
+                user_id=normalized_user_id,
+                transaction_by=transaction_by,
+                amount=amount,
+            )
+            wallet_spending.full_clean()
+            wallet_spending.save()
 
     @staticmethod
     def _upsert_limit(
@@ -1097,7 +789,6 @@ class WalletSpendingLimitService(BaseWalletService):
         active_to: datetime | None,
         is_active: bool,
     ) -> WalletSpendingLimit:
-        """Create or update the concrete rule record used by public APIs."""
         is_new_spending_limit = spending_limit is None
         if spending_limit is None:
             lookup = {
@@ -1110,9 +801,7 @@ class WalletSpendingLimitService(BaseWalletService):
                 lookup["beneficiary"] = beneficiary
 
             spending_limit, _ = WalletSpendingLimit.objects.select_for_update().get_or_create(
-                defaults={
-                    "beneficiary": beneficiary,
-                },
+                defaults={"beneficiary": beneficiary},
                 **lookup,
             )
 
@@ -1122,67 +811,121 @@ class WalletSpendingLimitService(BaseWalletService):
         spending_limit.limit_type = limit_type
         spending_limit.period = period
         spending_limit.is_active = is_active
-        spending_limit.active_from = active_from
-        spending_limit.active_to = active_to
 
         if limit_type == WalletSpendingLimit.LimitType.AMOUNT:
             if amount is None:
-                raise InvalidWalletSpendingLimitError("Amount is required for amount-based spending limits.")
+                raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_AMOUNT_REQUIRED)
             spending_limit.amount = WalletSpendingLimitService.normalize_amount(amount, allow_zero=False)
             spending_limit.percentage = None
         elif limit_type == WalletSpendingLimit.LimitType.PERCENTAGE:
             if percentage is None:
-                raise InvalidWalletSpendingLimitError("Percentage is required for percentage-based spending limits.")
+                raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_PERCENTAGE_REQUIRED)
             spending_limit.percentage = WalletSpendingLimitService.normalize_percentage(percentage)
             spending_limit.amount = None
         else:
-            raise InvalidWalletSpendingLimitError("Unsupported spending limit type.")
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_TYPE_UNSUPPORTED)
 
         try:
             spending_limit.full_clean()
-            WalletSpendingLimitService._validate_limit_constraints(spending_limit=spending_limit)
             spending_limit.save()
+            WalletSpendingLimitService._sync_custom_periods(
+                spending_limit=spending_limit,
+                active_from=active_from,
+                active_to=active_to,
+            )
+            WalletSpendingLimitService._validate_limit_constraints(
+                spending_limit=spending_limit,
+                active_from=active_from,
+                active_to=active_to,
+            )
         except ValidationError as error:
-            raise InvalidWalletSpendingLimitError(str(error)) from error
+            raise InvalidWalletSpendingLimitError(
+                code=WalletErrorCode.SPENDING_LIMIT_VALIDATION_FAILED,
+                details={"reason": str(error)},
+            ) from error
 
+        activity_action = (
+            WalletActivities.ActionType.SPENDING_LIMIT_SET
+            if is_new_spending_limit
+            else WalletActivities.ActionType.SPENDING_LIMIT_UPDATED
+        )
+        activity_user_id = beneficiary.user_id if beneficiary is not None else wallet.user_id
+        WalletSpendingLimitService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=activity_user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=activity_action,
+            spending_limit=spending_limit,
+            metadata={
+                "scope": spending_limit.scope,
+                "limit_type": spending_limit.limit_type,
+                "period": spending_limit.period,
+                "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
+                "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
+                "is_active": spending_limit.is_active,
+            },
+        )
         if beneficiary is not None:
-            WalletSpendingLimitService.create_beneficiary_activity_record(
+            WalletSpendingLimitService.create_wallet_beneficiary_activity_record(
                 wallet=wallet,
-                actor_user_id=wallet.user_id,
-                beneficiary_user_id=beneficiary.beneficiary_user_id,
+                beneficiary=beneficiary,
+                user_id=beneficiary.user_id,
                 action_type=(
                     WalletBeneficiaryActivity.ActionType.SPENDING_LIMIT_SET
                     if is_new_spending_limit
                     else WalletBeneficiaryActivity.ActionType.SPENDING_LIMIT_UPDATED
                 ),
-                beneficiary=beneficiary,
                 metadata={
+                    "scope": spending_limit.scope,
                     "limit_type": spending_limit.limit_type,
                     "period": spending_limit.period,
                     "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
                     "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
                     "is_active": spending_limit.is_active,
+                    "actor_user_id": wallet.user_id,
+                    "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
                 },
             )
-
         return spending_limit
 
     @staticmethod
-    def _get_spending_limit_for_wallet(
+    def _sync_custom_periods(
         *,
-        wallet: Wallet,
-        spending_limit_id: UUID | str,
-    ) -> WalletSpendingLimit:
-        """Fetch a spending limit and assert it belongs to the supplied wallet."""
+        spending_limit: WalletSpendingLimit,
+        active_from: datetime | None,
+        active_to: datetime | None,
+    ) -> None:
+        if spending_limit.period != WalletSpendingLimit.Period.CUSTOM:
+            spending_limit.custom_periods.all().delete()
+            return
+
+        if active_from is None or active_to is None:
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED)
+        if active_to <= active_from:
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID)
+
+        spending_limit.custom_periods.all().delete()
+        custom_period = CustomPeriod(spending_limit=spending_limit, starts_at=active_from, ends_at=active_to)
+        custom_period.full_clean()
+        custom_period.save()
+
+    @staticmethod
+    def _get_spending_limit_for_wallet(*, wallet: Wallet, spending_limit_id: UUID | str) -> WalletSpendingLimit:
         spending_limit = WalletSpendingLimit.objects.select_for_update().get(pk=spending_limit_id)
         if spending_limit.wallet_id != wallet.id:
-            raise InvalidWalletSpendingLimitError("The supplied spending limit does not belong to the supplied wallet.")
-
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_WALLET_MISMATCH)
         return spending_limit
 
     @staticmethod
-    def _validate_limit_constraints(*, spending_limit: WalletSpendingLimit) -> None:
-        """Run additional service-level checks beyond model validation."""
+    def _validate_limit_constraints(
+        *,
+        spending_limit: WalletSpendingLimit,
+        active_from: datetime | None,
+        active_to: datetime | None,
+    ) -> None:
+        if spending_limit.period == WalletSpendingLimit.Period.CUSTOM and (active_from is None or active_to is None):
+            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED)
+
         if (
             spending_limit.scope == WalletSpendingLimit.Scope.BENEFICIARY
             and spending_limit.limit_type == WalletSpendingLimit.LimitType.PERCENTAGE
@@ -1192,7 +935,6 @@ class WalletSpendingLimitService(BaseWalletService):
 
     @staticmethod
     def _validate_beneficiary_percentage_allocation(*, spending_limit: WalletSpendingLimit) -> None:
-        """Ensure active beneficiary percentage allocations do not exceed 100%."""
         overlapping_limits = WalletSpendingLimit.objects.select_for_update().filter(
             wallet=spending_limit.wallet,
             scope=WalletSpendingLimit.Scope.BENEFICIARY,
@@ -1202,14 +944,14 @@ class WalletSpendingLimitService(BaseWalletService):
         ).exclude(pk=spending_limit.pk)
 
         if spending_limit.period == WalletSpendingLimit.Period.CUSTOM:
+            current_period = spending_limit.custom_periods.first()
             overlapping_limits = [
                 existing_limit
                 for existing_limit in overlapping_limits
-                if WalletSpendingLimitService._custom_windows_overlap(
-                    start_a=spending_limit.active_from,
-                    end_a=spending_limit.active_to,
-                    start_b=existing_limit.active_from,
-                    end_b=existing_limit.active_to,
+                if current_period is not None
+                and WalletSpendingLimitService._custom_periods_overlap(
+                    current_period=current_period,
+                    comparison_limit=existing_limit,
                 )
             ]
         else:
@@ -1220,13 +962,16 @@ class WalletSpendingLimitService(BaseWalletService):
         )
         if total_percentage > Decimal("100.00"):
             raise InvalidWalletSpendingLimitError(
-                "Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%."
+                code=WalletErrorCode.SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED
             )
 
     @staticmethod
-    def _custom_windows_overlap(*, start_a, end_a, start_b, end_b) -> bool:
-        """Return whether two custom date windows overlap."""
-        return start_a <= end_b and start_b <= end_a
+    def _custom_periods_overlap(*, current_period: CustomPeriod, comparison_limit: WalletSpendingLimit) -> bool:
+        comparison_period = comparison_limit.custom_periods.first()
+        if comparison_period is None:
+            return False
+
+        return current_period.starts_at <= comparison_period.ends_at and comparison_period.starts_at <= current_period.ends_at
 
     @staticmethod
     def _get_active_limits(
@@ -1235,23 +980,21 @@ class WalletSpendingLimitService(BaseWalletService):
         beneficiary: WalletBeneficiary | None,
         now,
     ) -> list[WalletSpendingLimit]:
-        """Return active rules that apply to the current spend context."""
-        limits = WalletSpendingLimit.objects.for_wallet(wallet.id).active().filter(
-            Q(active_from__isnull=True) | Q(active_from__lte=now),
-            Q(active_to__isnull=True) | Q(active_to__gte=now),
-        )
+        limits = WalletSpendingLimit.objects.for_wallet(wallet.id).active()
+        active_limits = []
+        for spending_limit in limits:
+            if spending_limit.period == WalletSpendingLimit.Period.CUSTOM:
+                if not spending_limit.custom_periods.filter(starts_at__lte=now, ends_at__gte=now).exists():
+                    continue
 
-        wallet_limits = list(limits.filter(scope=WalletSpendingLimit.Scope.WALLET))
-        beneficiary_limits = []
-        if beneficiary is not None:
-            beneficiary_limits = list(
-                limits.filter(
-                    scope=WalletSpendingLimit.Scope.BENEFICIARY,
-                    beneficiary=beneficiary,
-                )
-            )
+            if spending_limit.scope == WalletSpendingLimit.Scope.WALLET:
+                active_limits.append(spending_limit)
+                continue
 
-        return wallet_limits + beneficiary_limits
+            if beneficiary is not None and spending_limit.beneficiary_id == beneficiary.id:
+                active_limits.append(spending_limit)
+
+        return active_limits
 
     @staticmethod
     def _assert_limit_not_exceeded(
@@ -1259,78 +1002,37 @@ class WalletSpendingLimitService(BaseWalletService):
         spending_limit: WalletSpendingLimit,
         wallet: Wallet,
         amount: Decimal,
-        beneficiary: WalletBeneficiary | None,
         now,
     ) -> None:
-        """Raise if a specific spending rule would be exceeded."""
-        limit_threshold = WalletSpendingLimitService._calculate_limit_threshold(
-            spending_limit=spending_limit,
-            wallet=wallet,
-        )
-
+        limit_threshold = WalletSpendingLimitService._calculate_limit_threshold(spending_limit=spending_limit, wallet=wallet)
         if spending_limit.period == WalletSpendingLimit.Period.PER_TRANSACTION:
             if amount > limit_threshold:
-                raise WalletSpendingLimitExceededError("Requested spend exceeds the configured per-transaction limit.")
+                raise WalletSpendingLimitExceededError(
+                    code=WalletErrorCode.SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED
+                )
             return
 
-        spent_amount = WalletSpendingLimitService._get_spent_amount_for_limit(
-            spending_limit=spending_limit,
-            wallet=wallet,
-            beneficiary=beneficiary,
-            now=now,
-        )
+        spent_amount = WalletSpendingLimitService._get_spent_amount_for_limit(spending_limit=spending_limit, now=now)
         if spent_amount + amount > limit_threshold:
-            raise WalletSpendingLimitExceededError("Requested spend exceeds the configured spending limit for the active period.")
+            raise WalletSpendingLimitExceededError(code=WalletErrorCode.SPENDING_LIMIT_PERIOD_EXCEEDED)
 
     @staticmethod
-    def _calculate_limit_threshold(
-        *,
-        spending_limit: WalletSpendingLimit,
-        wallet: Wallet,
-    ) -> Decimal:
-        """Convert a spending rule into its effective amount threshold."""
+    def _calculate_limit_threshold(*, spending_limit: WalletSpendingLimit, wallet: Wallet) -> Decimal:
         if spending_limit.limit_type == WalletSpendingLimit.LimitType.AMOUNT:
             return spending_limit.amount
-
         calculated_amount = (wallet.balance * spending_limit.percentage) / Decimal("100.00")
         return calculated_amount.quantize(Decimal("0.01"))
 
     @staticmethod
-    def _get_spent_amount_for_limit(
-        *,
-        spending_limit: WalletSpendingLimit,
-        wallet: Wallet,
-        beneficiary: WalletBeneficiary | None,
-        now,
-    ) -> Decimal:
-        """Calculate how much has already been spent within a rule window."""
-        transactions = WalletTransaction.objects.for_wallet(wallet.id).filter(
-            transaction_type__in=(
-                WalletTransaction.TransactionType.WITHDRAWAL,
-                WalletTransaction.TransactionType.TRANSFER_OUT,
-            )
-        )
-        if spending_limit.scope == WalletSpendingLimit.Scope.BENEFICIARY:
-            transactions = transactions.filter(
-                transaction_type=WalletTransaction.TransactionType.TRANSFER_OUT,
-                beneficiary=beneficiary,
-            )
-
-        period_start, period_end = WalletSpendingLimitService._get_period_window(
-            spending_limit=spending_limit,
-            now=now,
-        )
-        transactions = transactions.filter(created_at__gte=period_start, created_at__lte=period_end)
-        spent_amount = transactions.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+    def _get_spent_amount_for_limit(*, spending_limit: WalletSpendingLimit, now) -> Decimal:
+        spendings = WalletSpending.objects.for_spending_limit(spending_limit.id)
+        period_start, period_end = WalletSpendingLimitService._get_period_window(spending_limit=spending_limit, now=now)
+        spendings = spendings.filter(created_at__gte=period_start, created_at__lte=period_end)
+        spent_amount = spendings.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         return spent_amount.quantize(Decimal("0.01"))
 
     @staticmethod
-    def _get_period_window(
-        *,
-        spending_limit: WalletSpendingLimit,
-        now,
-    ) -> tuple[datetime, datetime]:
-        """Return the start and end timestamps for rule evaluation."""
+    def _get_period_window(*, spending_limit: WalletSpendingLimit, now) -> tuple[datetime, datetime]:
         if spending_limit.period == WalletSpendingLimit.Period.DAILY:
             period_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             return period_start, now
@@ -1344,7 +1046,10 @@ class WalletSpendingLimitService(BaseWalletService):
             return period_start, now
 
         if spending_limit.period == WalletSpendingLimit.Period.CUSTOM:
-            return spending_limit.active_from, spending_limit.active_to
+            custom_period = spending_limit.custom_periods.filter(starts_at__lte=now, ends_at__gte=now).first()
+            if custom_period is None:
+                raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD)
+            return custom_period.starts_at, custom_period.ends_at
 
         return now, now
 
@@ -1362,35 +1067,12 @@ class WalletTransferService(BaseWalletService):
         destination_wallet_id: UUID | str,
         amount: Decimal | int | str,
     ) -> tuple[WalletTransaction, WalletTransaction]:
-        """Transfer funds to a beneficiary-owned destination wallet.
-
-        Args:
-            user_id: Source wallet owner identifier.
-            source_wallet_id: Wallet sending the funds.
-            beneficiary_user_id: Attached beneficiary receiving the transfer.
-            destination_wallet_id: Beneficiary-owned wallet receiving the funds.
-            amount: Positive amount to transfer.
-
-        Returns:
-            A tuple of ``(source_transaction, destination_transaction)`` using
-            the same transfer reference.
-
-        Raises:
-            InvalidWalletAmountError: If the amount is invalid.
-            WalletOwnershipError: If the source wallet belongs to another user.
-            WalletBeneficiaryNotFoundError: If the beneficiary is not attached to
-                the source wallet.
-            InvalidWalletTransferError: If the destination wallet is invalid or
-                matches the source wallet.
-            InsufficientWalletBalanceError: If the source wallet has insufficient
-                balance.
-            WalletSpendingLimitExceededError: If wallet or beneficiary rules
-                block the transfer.
-        """
         normalized_amount = WalletTransferService.normalize_amount(amount, allow_zero=False)
-        source_wallet = WalletTransferService.get_wallet_for_user(
-            wallet_id=source_wallet_id,
-            user_id=user_id,
+        normalized_actor_user_id = WalletTransferService.normalize_user_id(user_id)
+        source_wallet = Wallet.objects.select_for_update().get(pk=source_wallet_id)
+        actor = WalletTransferService.get_wallet_participant_for_wallet(
+            wallet=source_wallet,
+            participant_user_id=normalized_actor_user_id,
             for_update=True,
         )
         beneficiary = WalletTransferService.get_beneficiary_for_wallet(
@@ -1400,20 +1082,24 @@ class WalletTransferService(BaseWalletService):
         )
         destination_wallet = WalletTransferService.get_destination_wallet_for_beneficiary(
             destination_wallet_id=destination_wallet_id,
-            beneficiary_user_id=beneficiary.beneficiary_user_id,
+            beneficiary_user_id=beneficiary.user_id,
             for_update=True,
         )
 
         if destination_wallet.id == source_wallet.id:
-            raise InvalidWalletTransferError("Source and destination wallets must be different.")
-
+            raise InvalidWalletTransferError(code=WalletErrorCode.TRANSFER_SOURCE_EQUALS_DESTINATION)
         if normalized_amount > source_wallet.balance:
-            raise InsufficientWalletBalanceError("Wallet balance is insufficient for this transfer.")
+            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_TRANSFER)
 
+        actor_transaction_by = WalletTransferService.get_transaction_by(
+            wallet=source_wallet,
+            actor_user_id=normalized_actor_user_id,
+        )
+        beneficiary_scope = actor if actor_transaction_by == WalletTransaction.TransactionBy.BENEFICIARY else None
         WalletSpendingLimitService.validate_spending_limits(
             wallet=source_wallet,
             amount=normalized_amount,
-            beneficiary=beneficiary,
+            beneficiary=beneficiary_scope,
         )
 
         transfer_reference = uuid4()
@@ -1429,32 +1115,52 @@ class WalletTransferService(BaseWalletService):
         destination_wallet.balance = destination_balance_after
         destination_wallet.full_clean()
         destination_wallet.save(update_fields=["balance", "updated_at"])
+        WalletTransferService.ensure_owner_beneficiary(wallet=destination_wallet)
 
         source_transaction = WalletTransferService.create_transaction_record(
             wallet=source_wallet,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
             transaction_type=WalletTransaction.TransactionType.TRANSFER_OUT,
             amount=normalized_amount,
             balance_before=source_balance_before,
             balance_after=source_balance_after,
             reference=transfer_reference,
             related_wallet=destination_wallet,
-            beneficiary=beneficiary,
         )
-        WalletTransferService.create_beneficiary_activity_record(
+        WalletTransferService.create_wallet_activity_record(
             wallet=source_wallet,
-            actor_user_id=source_wallet.user_id,
-            beneficiary_user_id=beneficiary.beneficiary_user_id,
-            action_type=WalletBeneficiaryActivity.ActionType.TRANSFER_OUT,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
+            action_type=WalletActivities.ActionType.TRANSFER_OUT,
+            amount=normalized_amount,
+            reference=transfer_reference,
+            transaction_record=source_transaction,
+            metadata={
+                "destination_wallet_id": str(destination_wallet.id),
+                "beneficiary_user_id": beneficiary.user_id,
+                "source_transaction_id": str(source_transaction.id),
+            },
+        )
+        WalletTransferService.create_wallet_beneficiary_activity_record(
+            wallet=source_wallet,
             beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            action_type=WalletBeneficiaryActivity.ActionType.TRANSFER_OUT,
             amount=normalized_amount,
             reference=transfer_reference,
             metadata={
+                "actor_user_id": normalized_actor_user_id,
+                "actor_transaction_by": actor_transaction_by,
                 "destination_wallet_id": str(destination_wallet.id),
                 "source_transaction_id": str(source_transaction.id),
             },
         )
+
         destination_transaction = WalletTransferService.create_transaction_record(
             wallet=destination_wallet,
+            user_id=beneficiary.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
             transaction_type=WalletTransaction.TransactionType.TRANSFER_IN,
             amount=normalized_amount,
             balance_before=destination_balance_before,
@@ -1462,11 +1168,29 @@ class WalletTransferService(BaseWalletService):
             reference=transfer_reference,
             related_wallet=source_wallet,
         )
+        WalletTransferService.create_wallet_activity_record(
+            wallet=destination_wallet,
+            user_id=beneficiary.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.TRANSFER_IN,
+            amount=normalized_amount,
+            reference=transfer_reference,
+            transaction_record=destination_transaction,
+            metadata={"source_wallet_id": str(source_wallet.id)},
+        )
+        WalletSpendingLimitService.record_spending_usage(
+            wallet=source_wallet,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
+            amount=normalized_amount,
+            transaction_record=source_transaction,
+            beneficiary=beneficiary_scope,
+        )
         return source_transaction, destination_transaction
 
 
 class WalletBeneficiaryHistoryService(BaseWalletService):
-    """Read beneficiary audit and spending history."""
+    """Read wallet participant activity history."""
 
     @staticmethod
     def list_beneficiary_history(
@@ -1476,34 +1200,12 @@ class WalletBeneficiaryHistoryService(BaseWalletService):
         beneficiary_user_id: UserIdentifier | None = None,
         action_type: str | None = None,
     ) -> WalletBeneficiaryActivityQuerySet:
-        """Return beneficiary activity rows for a wallet.
-
-        Args:
-            user_id: Expected wallet owner identifier.
-            wallet_id: Wallet whose beneficiary activity should be queried.
-            beneficiary_user_id: Optional beneficiary user filter.
-            action_type: Optional activity type filter.
-
-        Returns:
-            A queryset of matching beneficiary activity records.
-
-        Raises:
-            WalletOwnershipError: If the wallet belongs to another user.
-        """
-        wallet = WalletBeneficiaryHistoryService.get_wallet_for_user(
-            wallet_id=wallet_id,
-            user_id=user_id,
-        )
+        wallet = WalletBeneficiaryHistoryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
         history = WalletBeneficiaryActivity.objects.for_wallet(wallet.id)
-
         if beneficiary_user_id is not None:
-            history = history.for_beneficiary_user(
-                WalletBeneficiaryHistoryService.normalize_user_id(beneficiary_user_id)
-            )
-
+            history = history.for_user(WalletBeneficiaryHistoryService.normalize_user_id(beneficiary_user_id))
         if action_type is not None:
             history = history.filter(action_type=action_type)
-
         return history
 
     @staticmethod
@@ -1513,11 +1215,6 @@ class WalletBeneficiaryHistoryService(BaseWalletService):
         wallet_id: UUID | str,
         beneficiary_user_id: UserIdentifier | None = None,
     ) -> WalletBeneficiaryActivityQuerySet:
-        """Return only beneficiary spending events for a wallet.
-
-        This is a convenience wrapper over ``list_beneficiary_history`` that
-        limits results to outbound transfer activity.
-        """
         history = WalletBeneficiaryHistoryService.list_beneficiary_history(
             user_id=user_id,
             wallet_id=wallet_id,
