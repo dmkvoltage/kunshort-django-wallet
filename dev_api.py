@@ -1,8 +1,9 @@
-"""Single-file DRF API surface for exercising wallet services during development."""
+"""Development-only DRF API surface for exercising wallet services locally."""
 
 from __future__ import annotations
 
 from datetime import datetime
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.dateparse import parse_datetime
 from drf_spectacular.utils import OpenApiResponse, OpenApiTypes, extend_schema, extend_schema_view
@@ -10,9 +11,9 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .exceptions import WalletError, serialize_wallet_error
-from .models import WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
-from .services import (
+from wallets.exceptions import WalletError, serialize_wallet_error
+from wallets.models import CustomPeriod, WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
+from wallets.services import (
     WalletBeneficiaryHistoryService,
     WalletBeneficiaryService,
     WalletDebitService,
@@ -54,6 +55,7 @@ def _beneficiary_to_dict(beneficiary) -> dict:
         "user_id": beneficiary.user_id,
         "label": beneficiary.label,
         "is_owner": beneficiary.is_owner,
+        "can_view_balance": beneficiary.is_owner or beneficiary.can_view_balance,
         "created_at": beneficiary.created_at.isoformat(),
     }
 
@@ -110,8 +112,8 @@ def _spending_limit_to_dict(spending_limit) -> dict:
     custom_periods = [
         {
             "id": str(custom_period.id),
-            "starts_at": custom_period.starts_at.isoformat(),
-            "ends_at": custom_period.ends_at.isoformat(),
+            "duration_value": custom_period.duration_value,
+            "duration_unit": custom_period.duration_unit,
         }
         for custom_period in spending_limit.custom_periods.all()
     ]
@@ -125,6 +127,7 @@ def _spending_limit_to_dict(spending_limit) -> dict:
         "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
         "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
         "is_active": spending_limit.is_active,
+        "allow_rollover": spending_limit.allow_rollover,
         "custom_periods": custom_periods,
         "created_at": spending_limit.created_at.isoformat(),
         "updated_at": spending_limit.updated_at.isoformat(),
@@ -192,6 +195,18 @@ class BeneficiaryInputSerializer(serializers.Serializer):
     label = serializers.CharField(required=False, default="", allow_blank=True)
 
 
+class BeneficiaryBalanceVisibilityInputSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    wallet_id = serializers.UUIDField()
+    beneficiary_user_id = serializers.CharField()
+    can_view_balance = serializers.BooleanField()
+
+
+class BeneficiaryBalanceQuerySerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    wallet_id = serializers.UUIDField()
+
+
 class BeneficiaryListQuerySerializer(serializers.Serializer):
     user_id = serializers.CharField()
     wallet_id = serializers.UUIDField()
@@ -234,15 +249,13 @@ class WalletLimitInputSerializer(serializers.Serializer):
     period = serializers.ChoiceField(choices=WalletSpendingLimit.Period.choices, required=False, default=WalletSpendingLimit.Period.PER_TRANSACTION)
     amount = serializers.DecimalField(max_digits=18, decimal_places=2, required=False, allow_null=True)
     percentage = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, allow_null=True)
-    active_from = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    active_to = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    duration_value = serializers.IntegerField(required=False, allow_null=True, min_value=1)
+    duration_unit = serializers.ChoiceField(choices=CustomPeriod.DurationUnit.choices, required=False, allow_null=True)
     is_active = serializers.BooleanField(required=False, default=True)
+    allow_rollover = serializers.BooleanField(required=False, default=False)
 
     def validated_payload(self) -> dict:
-        payload = dict(self.validated_data)
-        payload["active_from"] = _parse_optional_datetime(payload.get("active_from"))
-        payload["active_to"] = _parse_optional_datetime(payload.get("active_to"))
-        return payload
+        return dict(self.validated_data)
 
 
 class BeneficiaryLimitInputSerializer(WalletLimitInputSerializer):
@@ -455,6 +468,42 @@ class BeneficiaryRemoveApiView(APIView):
 
 
 @extend_schema_view(
+    post=extend_schema(
+        summary="Set beneficiary balance visibility",
+        request=BeneficiaryBalanceVisibilityInputSerializer,
+        responses={200: OpenApiResponse(response=OpenApiTypes.OBJECT)},
+    )
+)
+class BeneficiaryBalanceVisibilityApiView(APIView):
+    def post(self, request):
+        serializer = BeneficiaryBalanceVisibilityInputSerializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            beneficiary = WalletBeneficiaryService.set_balance_visibility(**serializer.validated_data)
+            return Response(_beneficiary_to_dict(beneficiary))
+        except Exception as error:
+            return _error_response(error)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Get wallet balance as a beneficiary",
+        parameters=[BeneficiaryBalanceQuerySerializer],
+        responses={200: OpenApiResponse(response=OpenApiTypes.OBJECT)},
+    )
+)
+class BeneficiaryWalletBalanceApiView(APIView):
+    def get(self, request):
+        serializer = BeneficiaryBalanceQuerySerializer(data=request.query_params)
+        try:
+            serializer.is_valid(raise_exception=True)
+            wallet = WalletBeneficiaryService.get_wallet_balance_for_beneficiary(**serializer.validated_data)
+            return Response({"wallet_id": str(wallet.id), "balance": str(wallet.balance), "currency_code": wallet.currency_code})
+        except Exception as error:
+            return _error_response(error)
+
+
+@extend_schema_view(
     get=extend_schema(
         summary="List beneficiary activities",
         parameters=[BeneficiaryActivityQuerySerializer],
@@ -648,6 +697,8 @@ api_urlpatterns = [
     ("wallets/beneficiary-wallet-history/", BeneficiaryWalletHistoryApiView.as_view(), "api-beneficiary-wallet-history"),
     ("wallets/beneficiaries/", BeneficiariesApiView.as_view(), "api-beneficiaries"),
     ("wallets/beneficiaries/remove/", BeneficiaryRemoveApiView.as_view(), "api-beneficiary-remove"),
+    ("wallets/beneficiaries/balance-visibility/", BeneficiaryBalanceVisibilityApiView.as_view(), "api-beneficiary-balance-visibility"),
+    ("wallets/beneficiaries/balance/", BeneficiaryWalletBalanceApiView.as_view(), "api-beneficiary-balance"),
     ("wallets/beneficiary-activities/", BeneficiaryActivitiesApiView.as_view(), "api-beneficiary-activities"),
     ("wallets/beneficiary-spending-history/", BeneficiarySpendingHistoryApiView.as_view(), "api-beneficiary-spending-history"),
     ("wallets/transfers/", WalletTransferApiView.as_view(), "api-wallet-transfer"),

@@ -197,6 +197,7 @@ class WalletBeneficiary(models.Model):
     user_id = models.CharField(max_length=255, db_index=True)
     label = models.CharField(max_length=100, blank=True)
     is_owner = models.BooleanField(default=False)
+    can_view_balance = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = WalletBeneficiaryQuerySet.as_manager()
@@ -237,6 +238,7 @@ class WalletBeneficiaryActivity(models.Model):
         TRANSFER_OUT = "transfer_out", "Transfer out"
         SPENDING_LIMIT_SET = "spending_limit_set", "Spending limit set"
         SPENDING_LIMIT_UPDATED = "spending_limit_updated", "Spending limit updated"
+        BALANCE_VISIBILITY_CHANGED = "balance_visibility_changed", "Balance visibility changed"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     wallet = models.ForeignKey(
@@ -293,9 +295,11 @@ class WalletSpendingLimit(models.Model):
 
     class Period(models.TextChoices):
         PER_TRANSACTION = "per_transaction", "Per transaction"
+        HOURLY = "hourly", "Hourly"
         DAILY = "daily", "Daily"
         WEEKLY = "weekly", "Weekly"
         MONTHLY = "monthly", "Monthly"
+        YEARLY = "yearly", "Yearly"
         CUSTOM = "custom", "Custom"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -312,6 +316,7 @@ class WalletSpendingLimit(models.Model):
     period = models.CharField(max_length=20, choices=Period.choices, default=Period.PER_TRANSACTION)
     amount = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
     percentage = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    allow_rollover = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -367,7 +372,14 @@ class WalletSpendingLimit(models.Model):
 
 
 class CustomPeriod(models.Model):
-    """Custom active window linked to a spending limit."""
+    """Rolling-window duration linked to a custom spending limit."""
+
+    class DurationUnit(models.TextChoices):
+        HOURS = "hours", "Hours"
+        DAYS = "days", "Days"
+        WEEKS = "weeks", "Weeks"
+        MONTHS = "months", "Months"
+        YEARS = "years", "Years"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     spending_limit = models.ForeignKey(
@@ -375,19 +387,19 @@ class CustomPeriod(models.Model):
         on_delete=models.CASCADE,
         related_name="custom_periods",
     )
-    starts_at = models.DateTimeField()
-    ends_at = models.DateTimeField()
+    duration_value = models.PositiveIntegerField()
+    duration_unit = models.CharField(max_length=10, choices=DurationUnit.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ("starts_at",)
+        ordering = ("created_at",)
 
     def clean(self) -> None:
-        if self.ends_at <= self.starts_at:
-            raise ValidationError({"ends_at": "ends_at must be greater than starts_at."})
+        if self.duration_value < 1:
+            raise ValidationError({"duration_value": "Duration must be at least 1."})
 
     def __str__(self) -> str:
-        return f"{self.starts_at} - {self.ends_at}"
+        return f"{self.duration_value} {self.duration_unit}"
 
 
 class WalletActivities(models.Model):
@@ -403,6 +415,7 @@ class WalletActivities(models.Model):
         TRANSFER_OUT = "transfer_out", "Transfer out"
         SPENDING_LIMIT_SET = "spending_limit_set", "Spending limit set"
         SPENDING_LIMIT_UPDATED = "spending_limit_updated", "Spending limit updated"
+        BALANCE_VISIBILITY_CHANGED = "balance_visibility_changed", "Balance visibility changed"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="activities")

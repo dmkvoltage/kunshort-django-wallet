@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import calendar
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from uuid import UUID, uuid4
@@ -19,6 +20,7 @@ from .exceptions import (
     InvalidWalletCurrencyError,
     InvalidWalletSpendingLimitError,
     InvalidWalletTransferError,
+    WalletBalanceVisibilityError,
     WalletErrorCode,
     WalletBeneficiaryNotFoundError,
     WalletOwnershipError,
@@ -568,6 +570,71 @@ class WalletBeneficiaryService(BaseWalletService):
         wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
         return WalletBeneficiary.objects.for_wallet(wallet.id)
 
+    @staticmethod
+    @transaction.atomic
+    def set_balance_visibility(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+        beneficiary_user_id: UserIdentifier,
+        can_view_balance: bool,
+    ) -> WalletBeneficiary:
+        wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
+        beneficiary = WalletBeneficiaryService.get_beneficiary_for_wallet(
+            wallet=wallet,
+            beneficiary_user_id=beneficiary_user_id,
+            for_update=True,
+        )
+        if beneficiary.is_owner:
+            raise WalletBalanceVisibilityError(code=WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN)
+
+        beneficiary.can_view_balance = can_view_balance
+        beneficiary.save(update_fields=["can_view_balance"])
+
+        WalletBeneficiaryService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.BALANCE_VISIBILITY_CHANGED,
+            metadata={
+                "beneficiary_user_id": beneficiary.user_id,
+                "can_view_balance": can_view_balance,
+            },
+        )
+        WalletBeneficiaryService.create_wallet_beneficiary_activity_record(
+            wallet=wallet,
+            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            action_type=WalletBeneficiaryActivity.ActionType.BALANCE_VISIBILITY_CHANGED,
+            metadata={
+                "can_view_balance": can_view_balance,
+                "actor_user_id": wallet.user_id,
+                "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
+            },
+        )
+        return beneficiary
+
+    @staticmethod
+    def get_wallet_balance_for_beneficiary(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+    ) -> Wallet:
+        normalized_user_id = WalletBeneficiaryService.normalize_user_id(user_id)
+        try:
+            wallet = Wallet.objects.get(pk=wallet_id)
+        except Wallet.DoesNotExist:
+            raise WalletBeneficiaryNotFoundError(code=WalletErrorCode.BENEFICIARY_NOT_FOUND)
+
+        beneficiary = WalletBeneficiaryService.get_beneficiary_for_wallet(
+            wallet=wallet,
+            beneficiary_user_id=normalized_user_id,
+        )
+        if not beneficiary.is_owner and not beneficiary.can_view_balance:
+            raise WalletBalanceVisibilityError(code=WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED)
+
+        return wallet
+
 
 class WalletSpendingLimitService(BaseWalletService):
     """Create, update, list, and enforce spending-limit rules."""
@@ -582,8 +649,9 @@ class WalletSpendingLimitService(BaseWalletService):
         period: str = WalletSpendingLimit.Period.PER_TRANSACTION,
         amount: Decimal | int | str | None = None,
         percentage: Decimal | int | str | None = None,
-        active_from: datetime | None = None,
-        active_to: datetime | None = None,
+        duration_value: int | None = None,
+        duration_unit: str | None = None,
+        allow_rollover: bool = False,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
         wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
@@ -596,8 +664,9 @@ class WalletSpendingLimitService(BaseWalletService):
             period=period,
             amount=amount,
             percentage=percentage,
-            active_from=active_from,
-            active_to=active_to,
+            duration_value=duration_value,
+            duration_unit=duration_unit,
+            allow_rollover=allow_rollover,
             is_active=is_active,
         )
 
@@ -612,8 +681,9 @@ class WalletSpendingLimitService(BaseWalletService):
         period: str = WalletSpendingLimit.Period.PER_TRANSACTION,
         amount: Decimal | int | str | None = None,
         percentage: Decimal | int | str | None = None,
-        active_from: datetime | None = None,
-        active_to: datetime | None = None,
+        duration_value: int | None = None,
+        duration_unit: str | None = None,
+        allow_rollover: bool = False,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
         wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
@@ -631,8 +701,9 @@ class WalletSpendingLimitService(BaseWalletService):
             period=period,
             amount=amount,
             percentage=percentage,
-            active_from=active_from,
-            active_to=active_to,
+            duration_value=duration_value,
+            duration_unit=duration_unit,
+            allow_rollover=allow_rollover,
             is_active=is_active,
         )
 
@@ -647,8 +718,9 @@ class WalletSpendingLimitService(BaseWalletService):
         period: str,
         amount: Decimal | int | str | None = None,
         percentage: Decimal | int | str | None = None,
-        active_from: datetime | None = None,
-        active_to: datetime | None = None,
+        duration_value: int | None = None,
+        duration_unit: str | None = None,
+        allow_rollover: bool = False,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
         wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
@@ -668,8 +740,9 @@ class WalletSpendingLimitService(BaseWalletService):
             period=period,
             amount=amount,
             percentage=percentage,
-            active_from=active_from,
-            active_to=active_to,
+            duration_value=duration_value,
+            duration_unit=duration_unit,
+            allow_rollover=allow_rollover,
             is_active=is_active,
         )
 
@@ -685,8 +758,9 @@ class WalletSpendingLimitService(BaseWalletService):
         period: str,
         amount: Decimal | int | str | None = None,
         percentage: Decimal | int | str | None = None,
-        active_from: datetime | None = None,
-        active_to: datetime | None = None,
+        duration_value: int | None = None,
+        duration_unit: str | None = None,
+        allow_rollover: bool = False,
         is_active: bool = True,
     ) -> WalletSpendingLimit:
         wallet = WalletSpendingLimitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
@@ -711,8 +785,9 @@ class WalletSpendingLimitService(BaseWalletService):
             period=period,
             amount=amount,
             percentage=percentage,
-            active_from=active_from,
-            active_to=active_to,
+            duration_value=duration_value,
+            duration_unit=duration_unit,
+            allow_rollover=allow_rollover,
             is_active=is_active,
         )
 
@@ -785,8 +860,9 @@ class WalletSpendingLimitService(BaseWalletService):
         period: str,
         amount: Decimal | int | str | None,
         percentage: Decimal | int | str | None,
-        active_from: datetime | None,
-        active_to: datetime | None,
+        duration_value: int | None,
+        duration_unit: str | None,
+        allow_rollover: bool,
         is_active: bool,
     ) -> WalletSpendingLimit:
         is_new_spending_limit = spending_limit is None
@@ -810,6 +886,7 @@ class WalletSpendingLimitService(BaseWalletService):
         spending_limit.scope = scope
         spending_limit.limit_type = limit_type
         spending_limit.period = period
+        spending_limit.allow_rollover = allow_rollover
         spending_limit.is_active = is_active
 
         if limit_type == WalletSpendingLimit.LimitType.AMOUNT:
@@ -830,13 +907,13 @@ class WalletSpendingLimitService(BaseWalletService):
             spending_limit.save()
             WalletSpendingLimitService._sync_custom_periods(
                 spending_limit=spending_limit,
-                active_from=active_from,
-                active_to=active_to,
+                duration_value=duration_value,
+                duration_unit=duration_unit,
             )
             WalletSpendingLimitService._validate_limit_constraints(
                 spending_limit=spending_limit,
-                active_from=active_from,
-                active_to=active_to,
+                duration_value=duration_value,
+                duration_unit=duration_unit,
             )
         except ValidationError as error:
             raise InvalidWalletSpendingLimitError(
@@ -862,6 +939,7 @@ class WalletSpendingLimitService(BaseWalletService):
                 "period": spending_limit.period,
                 "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
                 "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
+                "allow_rollover": spending_limit.allow_rollover,
                 "is_active": spending_limit.is_active,
             },
         )
@@ -881,6 +959,7 @@ class WalletSpendingLimitService(BaseWalletService):
                     "period": spending_limit.period,
                     "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
                     "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
+                    "allow_rollover": spending_limit.allow_rollover,
                     "is_active": spending_limit.is_active,
                     "actor_user_id": wallet.user_id,
                     "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
@@ -892,20 +971,22 @@ class WalletSpendingLimitService(BaseWalletService):
     def _sync_custom_periods(
         *,
         spending_limit: WalletSpendingLimit,
-        active_from: datetime | None,
-        active_to: datetime | None,
+        duration_value: int | None,
+        duration_unit: str | None,
     ) -> None:
         if spending_limit.period != WalletSpendingLimit.Period.CUSTOM:
             spending_limit.custom_periods.all().delete()
             return
 
-        if active_from is None or active_to is None:
+        if duration_value is None or duration_unit is None:
             raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED)
-        if active_to <= active_from:
-            raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID)
 
         spending_limit.custom_periods.all().delete()
-        custom_period = CustomPeriod(spending_limit=spending_limit, starts_at=active_from, ends_at=active_to)
+        custom_period = CustomPeriod(
+            spending_limit=spending_limit,
+            duration_value=duration_value,
+            duration_unit=duration_unit,
+        )
         custom_period.full_clean()
         custom_period.save()
 
@@ -920,11 +1001,21 @@ class WalletSpendingLimitService(BaseWalletService):
     def _validate_limit_constraints(
         *,
         spending_limit: WalletSpendingLimit,
-        active_from: datetime | None,
-        active_to: datetime | None,
+        duration_value: int | None,
+        duration_unit: str | None,
     ) -> None:
-        if spending_limit.period == WalletSpendingLimit.Period.CUSTOM and (active_from is None or active_to is None):
+        if spending_limit.period == WalletSpendingLimit.Period.CUSTOM and (duration_value is None or duration_unit is None):
             raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED)
+
+        _rollover_incompatible_periods = (
+            WalletSpendingLimit.Period.PER_TRANSACTION,
+            WalletSpendingLimit.Period.CUSTOM,
+        )
+        if spending_limit.allow_rollover:
+            if spending_limit.limit_type != WalletSpendingLimit.LimitType.AMOUNT:
+                raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)
+            if spending_limit.period in _rollover_incompatible_periods:
+                raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)
 
         if (
             spending_limit.scope == WalletSpendingLimit.Scope.BENEFICIARY
@@ -967,11 +1058,8 @@ class WalletSpendingLimitService(BaseWalletService):
 
     @staticmethod
     def _custom_periods_overlap(*, current_period: CustomPeriod, comparison_limit: WalletSpendingLimit) -> bool:
-        comparison_period = comparison_limit.custom_periods.first()
-        if comparison_period is None:
-            return False
-
-        return current_period.starts_at <= comparison_period.ends_at and comparison_period.starts_at <= current_period.ends_at
+        # Rolling windows are always concurrent, so any two active custom limits overlap.
+        return comparison_limit.custom_periods.exists()
 
     @staticmethod
     def _get_active_limits(
@@ -983,10 +1071,6 @@ class WalletSpendingLimitService(BaseWalletService):
         limits = WalletSpendingLimit.objects.for_wallet(wallet.id).active()
         active_limits = []
         for spending_limit in limits:
-            if spending_limit.period == WalletSpendingLimit.Period.CUSTOM:
-                if not spending_limit.custom_periods.filter(starts_at__lte=now, ends_at__gte=now).exists():
-                    continue
-
             if spending_limit.scope == WalletSpendingLimit.Scope.WALLET:
                 active_limits.append(spending_limit)
                 continue
@@ -1012,6 +1096,21 @@ class WalletSpendingLimitService(BaseWalletService):
                 )
             return
 
+        if spending_limit.allow_rollover:
+            completed_periods = WalletSpendingLimitService._count_completed_periods(
+                spending_limit=spending_limit, now=now
+            )
+            cumulative_threshold = limit_threshold * (completed_periods + 1)
+            total_spent = (
+                WalletSpending.objects.for_spending_limit(spending_limit.id)
+                .aggregate(total=Sum("amount"))["total"]
+                or Decimal("0.00")
+            )
+            total_spent = total_spent.quantize(Decimal("0.01"))
+            if total_spent + amount > cumulative_threshold:
+                raise WalletSpendingLimitExceededError(code=WalletErrorCode.SPENDING_LIMIT_PERIOD_EXCEEDED)
+            return
+
         spent_amount = WalletSpendingLimitService._get_spent_amount_for_limit(spending_limit=spending_limit, now=now)
         if spent_amount + amount > limit_threshold:
             raise WalletSpendingLimitExceededError(code=WalletErrorCode.SPENDING_LIMIT_PERIOD_EXCEEDED)
@@ -1032,7 +1131,62 @@ class WalletSpendingLimitService(BaseWalletService):
         return spent_amount.quantize(Decimal("0.01"))
 
     @staticmethod
+    def _subtract_duration(now: datetime, duration_value: int, duration_unit: str) -> datetime:
+        if duration_unit == CustomPeriod.DurationUnit.HOURS:
+            return now - timedelta(hours=duration_value)
+        if duration_unit == CustomPeriod.DurationUnit.DAYS:
+            return now - timedelta(days=duration_value)
+        if duration_unit == CustomPeriod.DurationUnit.WEEKS:
+            return now - timedelta(weeks=duration_value)
+        if duration_unit == CustomPeriod.DurationUnit.MONTHS:
+            abs_month = now.year * 12 + (now.month - 1) - duration_value
+            new_year, new_month_idx = divmod(abs_month, 12)
+            new_month = new_month_idx + 1
+            max_day = calendar.monthrange(new_year, new_month)[1]
+            return now.replace(year=new_year, month=new_month, day=min(now.day, max_day))
+        if duration_unit == CustomPeriod.DurationUnit.YEARS:
+            try:
+                return now.replace(year=now.year - duration_value)
+            except ValueError:
+                return now.replace(year=now.year - duration_value, day=28)
+        return now
+
+    @staticmethod
+    def _count_completed_periods(*, spending_limit: WalletSpendingLimit, now) -> int:
+        """Return the number of fully elapsed calendar periods since the limit was created."""
+        created_at = spending_limit.created_at
+        period = spending_limit.period
+
+        if period == WalletSpendingLimit.Period.HOURLY:
+            creation_hour = created_at.replace(minute=0, second=0, microsecond=0)
+            current_hour = now.replace(minute=0, second=0, microsecond=0)
+            delta_seconds = (current_hour - creation_hour).total_seconds()
+            return max(0, int(delta_seconds // 3600))
+
+        if period == WalletSpendingLimit.Period.DAILY:
+            creation_day = created_at.replace(hour=0, minute=0, second=0, microsecond=0)
+            current_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            return max(0, (current_day - creation_day).days)
+
+        if period == WalletSpendingLimit.Period.WEEKLY:
+            creation_week = created_at.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=created_at.weekday())
+            current_week = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=now.weekday())
+            return max(0, (current_week - creation_week).days // 7)
+
+        if period == WalletSpendingLimit.Period.MONTHLY:
+            return max(0, (now.year * 12 + now.month) - (created_at.year * 12 + created_at.month))
+
+        if period == WalletSpendingLimit.Period.YEARLY:
+            return max(0, now.year - created_at.year)
+
+        return 0
+
+    @staticmethod
     def _get_period_window(*, spending_limit: WalletSpendingLimit, now) -> tuple[datetime, datetime]:
+        if spending_limit.period == WalletSpendingLimit.Period.HOURLY:
+            period_start = now.replace(minute=0, second=0, microsecond=0)
+            return period_start, now
+
         if spending_limit.period == WalletSpendingLimit.Period.DAILY:
             period_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             return period_start, now
@@ -1045,11 +1199,18 @@ class WalletSpendingLimitService(BaseWalletService):
             period_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             return period_start, now
 
+        if spending_limit.period == WalletSpendingLimit.Period.YEARLY:
+            period_start = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+            return period_start, now
+
         if spending_limit.period == WalletSpendingLimit.Period.CUSTOM:
-            custom_period = spending_limit.custom_periods.filter(starts_at__lte=now, ends_at__gte=now).first()
+            custom_period = spending_limit.custom_periods.first()
             if custom_period is None:
                 raise InvalidWalletSpendingLimitError(code=WalletErrorCode.SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD)
-            return custom_period.starts_at, custom_period.ends_at
+            period_start = WalletSpendingLimitService._subtract_duration(
+                now, custom_period.duration_value, custom_period.duration_unit
+            )
+            return period_start, now
 
         return now, now
 

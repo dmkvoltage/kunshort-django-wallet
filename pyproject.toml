@@ -1,24 +1,25 @@
 [project]
-name = "wallet"
-version = "0.1.0"
+name = "kunshort-django-wallet"
+version = "1.0.0"
 description = "Django wallet module with wallet models and services"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "django>=6.0.3",
+]
+
+[project.optional-dependencies]
+api = [
     "djangorestframework>=3.15.2",
     "drf-spectacular>=0.27.2",
 ]
-
-[project.scripts]
-manage-wallet = "main:main"
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["main", "manage"]
 
 [tool.setuptools.packages.find]
-include = ["config*", "wallets*"]
+include = ["wallets*"]
+exclude = ["wallets.tests*"]

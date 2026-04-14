@@ -1,0 +1,144 @@
+{
+  "post_requests": [
+    {
+      "name": "create_wallet",
+      "method": "POST",
+      "path": "/api/wallets/",
+      "body": {
+        "user_id": "user-123",
+        "name": "Primary Wallet",
+        "currency_code": "XAF"
+      }
+    },
+    {
+      "name": "set_default_wallet",
+      "method": "POST",
+      "path": "/api/wallets/default/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111"
+      }
+    },
+    {
+      "name": "top_up_wallet",
+      "method": "POST",
+      "path": "/api/wallets/top-up/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "amount": "1500.00"
+      }
+    },
+    {
+      "name": "debit_wallet",
+      "method": "POST",
+      "path": "/api/wallets/debit/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "amount": "250.00"
+      }
+    },
+    {
+      "name": "add_beneficiary",
+      "method": "POST",
+      "path": "/api/wallets/beneficiaries/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "beneficiary_user_id": "user-456",
+        "label": "Trusted Recipient"
+      }
+    },
+    {
+      "name": "remove_beneficiary",
+      "method": "POST",
+      "path": "/api/wallets/beneficiaries/remove/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "beneficiary_user_id": "user-456"
+      }
+    },
+    {
+      "name": "transfer_to_beneficiary",
+      "method": "POST",
+      "path": "/api/wallets/transfers/",
+      "body": {
+        "user_id": "user-123",
+        "source_wallet_id": "11111111-1111-1111-1111-111111111111",
+        "beneficiary_user_id": "user-456",
+        "destination_wallet_id": "22222222-2222-2222-2222-222222222222",
+        "amount": "100.00"
+      }
+    },
+    {
+      "name": "create_wallet_spending_limit",
+      "method": "POST",
+      "path": "/api/wallets/spending-limits/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "limit_type": "amount",
+        "period": "daily",
+        "amount": "5000.00",
+        "percentage": null,
+        "active_from": null,
+        "active_to": null,
+        "is_active": true
+      }
+    },
+    {
+      "name": "update_wallet_spending_limit",
+      "method": "POST",
+      "path": "/api/wallets/spending-limits/update/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "spending_limit_id": "33333333-3333-3333-3333-333333333333",
+        "limit_type": "amount",
+        "period": "custom",
+        "amount": "3000.00",
+        "percentage": null,
+        "active_from": "2026-04-09T08:00:00Z",
+        "active_to": "2026-04-10T08:00:00Z",
+        "is_active": true
+      }
+    },
+    {
+      "name": "create_beneficiary_spending_limit",
+      "method": "POST",
+      "path": "/api/wallets/beneficiary-spending-limits/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "beneficiary_user_id": "user-456",
+        "limit_type": "percentage",
+        "period": "per_transaction",
+        "amount": null,
+        "percentage": "25.00",
+        "active_from": null,
+        "active_to": null,
+        "is_active": true
+      }
+    },
+    {
+      "name": "update_beneficiary_spending_limit",
+      "method": "POST",
+      "path": "/api/wallets/beneficiary-spending-limits/update/",
+      "body": {
+        "user_id": "user-123",
+        "wallet_id": "11111111-1111-1111-1111-111111111111",
+        "beneficiary_user_id": "user-456",
+        "spending_limit_id": "44444444-4444-4444-4444-444444444444",
+        "limit_type": "amount",
+        "period": "custom",
+        "amount": "750.00",
+        "percentage": null,
+        "active_from": "2026-04-09T08:00:00Z",
+        "active_to": "2026-04-10T08:00:00Z",
+        "is_active": true
+      }
+    }
+  ]
+}

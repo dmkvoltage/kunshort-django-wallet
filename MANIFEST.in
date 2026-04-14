@@ -1,0 +1,13 @@
+include README.md
+include pyproject.toml
+recursive-include wallets *.py
+prune config
+prune tests
+exclude main.py
+exclude manage.py
+exclude dev_api.py
+exclude api_test.json
+exclude db.sqlite3
+exclude Model.png
+global-exclude __pycache__
+global-exclude *.py[cod]

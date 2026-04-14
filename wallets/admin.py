@@ -51,8 +51,8 @@ class WalletTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(WalletBeneficiary)
 class WalletBeneficiaryAdmin(admin.ModelAdmin):
-    list_display = ("id", "wallet", "user_id", "label", "is_owner", "created_at")
-    list_filter = ("is_owner", "created_at")
+    list_display = ("id", "wallet", "user_id", "label", "is_owner", "can_view_balance", "created_at")
+    list_filter = ("is_owner", "can_view_balance", "created_at")
     search_fields = ("id", "wallet__id", "user_id", "label")
     ordering = ("-created_at",)
 
@@ -131,7 +131,7 @@ class WalletSpendingAdmin(admin.ModelAdmin):
 
 @admin.register(CustomPeriod)
 class CustomPeriodAdmin(admin.ModelAdmin):
-    list_display = ("id", "spending_limit", "starts_at", "ends_at", "created_at")
-    list_filter = ("created_at",)
+    list_display = ("id", "spending_limit", "duration_value", "duration_unit", "created_at")
+    list_filter = ("duration_unit", "created_at")
     search_fields = ("id", "spending_limit__id")
-    ordering = ("starts_at",)
+    ordering = ("created_at",)

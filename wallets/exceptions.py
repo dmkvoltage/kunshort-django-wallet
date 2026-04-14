@@ -39,6 +39,9 @@ class WalletErrorCode:
     SPENDING_LIMIT_PERIOD_EXCEEDED = 326
     SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD = 327
     TRANSFER_SOURCE_EQUALS_DESTINATION = 328
+    SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED = 329
+    BALANCE_VISIBILITY_NOT_PERMITTED = 330
+    OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN = 331
 
 
 WALLET_ERROR_MESSAGES = {
@@ -62,8 +65,8 @@ WALLET_ERROR_MESSAGES = {
     WalletErrorCode.SPENDING_LIMIT_PERCENTAGE_REQUIRED: "Percentage is required for percentage-based spending limits.",
     WalletErrorCode.SPENDING_LIMIT_TYPE_UNSUPPORTED: "Unsupported spending limit type.",
     WalletErrorCode.SPENDING_LIMIT_VALIDATION_FAILED: "Wallet spending limit configuration is invalid.",
-    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED: "Custom period limits require both active_from and active_to.",
-    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID: "active_to must be greater than active_from.",
+    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED: "Custom period limits require duration_value and duration_unit.",
+    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID: "duration_value must be a positive integer of at least 1.",
     WalletErrorCode.SPENDING_LIMIT_WALLET_MISMATCH: "The supplied spending limit does not belong to the supplied wallet.",
     WalletErrorCode.SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED: (
         "Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%."
@@ -78,6 +81,15 @@ WALLET_ERROR_MESSAGES = {
         "No active custom period is configured for this spending limit."
     ),
     WalletErrorCode.TRANSFER_SOURCE_EQUALS_DESTINATION: "Source and destination wallets must be different.",
+    WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED: (
+        "Rollover is only supported for amount-based limits on fixed calendar periods (hourly, daily, weekly, monthly, yearly)."
+    ),
+    WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED: (
+        "You do not have permission to view this wallet's balance."
+    ),
+    WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN: (
+        "Cannot change balance visibility for the wallet owner — the owner always has access."
+    ),
 }
 
 
@@ -190,4 +202,11 @@ class WalletSpendingLimitExceededError(WalletError):
     """Raised when an attempted spend exceeds an active spending rule."""
 
     default_code = WalletErrorCode.SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletBalanceVisibilityError(WalletError):
+    """Raised for balance-visibility permission and configuration errors."""
+
+    default_code = WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED
     default_message = WALLET_ERROR_MESSAGES[default_code]
