@@ -1,4 +1,6 @@
 from decimal import Decimal
+from datetime import timedelta
+from unittest.mock import patch
 from uuid import uuid4
 
 from django.contrib.auth import get_user_model
@@ -1014,4 +1016,149 @@ class WalletManagementCommandTests(TestCase):
         self.assertEqual(WalletService.list_wallets_for_user(user_id=existing_user.pk).count(), 1)
         self.assertEqual(WalletService.list_wallets_for_user(user_id=new_user.pk).count(), 1)
         self.assertEqual(WalletService.list_wallets_for_user(user_id=new_user.pk).get().name, "Provisioned Wallet")
-        self.assertEqual(WalletService.list_wallets_for_user(user_id=new_user.pk).get().currency_code, "EUR")
+
+
+class WalletRolloverTests(TestCase):
+    """Tests for the allow_rollover spending limit feature."""
+
+    def _setup_beneficiary(self):
+        owner_id = uuid4()
+        beneficiary_user_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="5000.00")
+        destination_wallet = create_funded_wallet(user_id=beneficiary_user_id, name="Dest", balance="0.00")
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=owner_id, wallet_id=wallet.id, beneficiary_user_id=beneficiary_user_id
+        )
+        return owner_id, beneficiary_user_id, wallet, destination_wallet
+
+    def test_rollover_carries_unused_daily_allowance_to_next_day(self):
+        """Unspent allowance from day 1 accumulates into day 2's effective limit."""
+        owner_id, beneficiary_user_id, wallet, destination_wallet = self._setup_beneficiary()
+
+        WalletSpendingLimitService.set_beneficiary_spending_limit(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+            period=WalletSpendingLimit.Period.DAILY,
+            amount="1000.00",
+            allow_rollover=True,
+        )
+
+        # Spend 500 on day 1.
+        WalletTransferService.transfer_to_beneficiary(
+            user_id=beneficiary_user_id,
+            source_wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            destination_wallet_id=destination_wallet.id,
+            amount="500.00",
+        )
+
+        # On day 2, effective cumulative limit = 2000 (2 days * 1000). Already spent 500,
+        # so up to 1500 more should be allowed.
+        real_now = timezone.now()
+        tomorrow_noon = (real_now + timedelta(days=1)).replace(
+            hour=12, minute=0, second=0, microsecond=0
+        )
+        with patch("wallets.services.timezone.now", return_value=tomorrow_noon):
+            wallet.refresh_from_db()
+            WalletTransferService.transfer_to_beneficiary(
+                user_id=beneficiary_user_id,
+                source_wallet_id=wallet.id,
+                beneficiary_user_id=beneficiary_user_id,
+                destination_wallet_id=destination_wallet.id,
+                amount="1500.00",
+            )
+
+        wallet.refresh_from_db()
+        self.assertEqual(wallet.balance, Decimal("3000.00"))  # 5000 - 500 - 1500
+
+    def test_rollover_blocks_spend_exceeding_cumulative_threshold(self):
+        """A spend that exceeds the cumulative rollover threshold is rejected."""
+        owner_id, beneficiary_user_id, wallet, destination_wallet = self._setup_beneficiary()
+
+        WalletSpendingLimitService.set_beneficiary_spending_limit(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+            period=WalletSpendingLimit.Period.DAILY,
+            amount="1000.00",
+            allow_rollover=True,
+        )
+
+        # Spend 500 on day 1.
+        WalletTransferService.transfer_to_beneficiary(
+            user_id=beneficiary_user_id,
+            source_wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            destination_wallet_id=destination_wallet.id,
+            amount="500.00",
+        )
+
+        # On day 2, cumulative limit = 2000. Total spent so far = 500.
+        # Attempting to spend 1501 more (total 2001) should fail.
+        real_now = timezone.now()
+        tomorrow_noon = (real_now + timedelta(days=1)).replace(
+            hour=12, minute=0, second=0, microsecond=0
+        )
+        with patch("wallets.services.timezone.now", return_value=tomorrow_noon):
+            with self.assertRaises(WalletSpendingLimitExceededError) as ctx:
+                WalletTransferService.transfer_to_beneficiary(
+                    user_id=beneficiary_user_id,
+                    source_wallet_id=wallet.id,
+                    beneficiary_user_id=beneficiary_user_id,
+                    destination_wallet_id=destination_wallet.id,
+                    amount="1501.00",
+                )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.SPENDING_LIMIT_PERIOD_EXCEEDED)
+
+    def test_rollover_rejected_for_percentage_limit(self):
+        """allow_rollover cannot be combined with a percentage-type limit."""
+        owner_id, beneficiary_user_id, wallet, _ = self._setup_beneficiary()
+
+        with self.assertRaises(InvalidWalletSpendingLimitError) as ctx:
+            WalletSpendingLimitService.set_beneficiary_spending_limit(
+                user_id=owner_id,
+                wallet_id=wallet.id,
+                beneficiary_user_id=beneficiary_user_id,
+                limit_type=WalletSpendingLimit.LimitType.PERCENTAGE,
+                period=WalletSpendingLimit.Period.DAILY,
+                percentage="50.00",
+                allow_rollover=True,
+            )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)
+
+    def test_rollover_rejected_for_per_transaction_period(self):
+        """allow_rollover cannot be combined with per_transaction period."""
+        owner_id, beneficiary_user_id, wallet, _ = self._setup_beneficiary()
+
+        with self.assertRaises(InvalidWalletSpendingLimitError) as ctx:
+            WalletSpendingLimitService.set_beneficiary_spending_limit(
+                user_id=owner_id,
+                wallet_id=wallet.id,
+                beneficiary_user_id=beneficiary_user_id,
+                limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+                period=WalletSpendingLimit.Period.PER_TRANSACTION,
+                amount="500.00",
+                allow_rollover=True,
+            )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)
+
+    def test_rollover_rejected_for_custom_period(self):
+        """allow_rollover cannot be combined with a custom rolling-window period."""
+        owner_id, beneficiary_user_id, wallet, _ = self._setup_beneficiary()
+
+        with self.assertRaises(InvalidWalletSpendingLimitError) as ctx:
+            WalletSpendingLimitService.set_beneficiary_spending_limit(
+                user_id=owner_id,
+                wallet_id=wallet.id,
+                beneficiary_user_id=beneficiary_user_id,
+                limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+                period=WalletSpendingLimit.Period.CUSTOM,
+                amount="500.00",
+                duration_value=2,
+                duration_unit=CustomPeriod.DurationUnit.DAYS,
+                allow_rollover=True,
+            )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)

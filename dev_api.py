@@ -126,6 +126,7 @@ def _spending_limit_to_dict(spending_limit) -> dict:
         "amount": str(spending_limit.amount) if spending_limit.amount is not None else None,
         "percentage": str(spending_limit.percentage) if spending_limit.percentage is not None else None,
         "is_active": spending_limit.is_active,
+        "allow_rollover": spending_limit.allow_rollover,
         "custom_periods": custom_periods,
         "created_at": spending_limit.created_at.isoformat(),
         "updated_at": spending_limit.updated_at.isoformat(),
@@ -238,6 +239,7 @@ class WalletLimitInputSerializer(serializers.Serializer):
     duration_value = serializers.IntegerField(required=False, allow_null=True, min_value=1)
     duration_unit = serializers.ChoiceField(choices=CustomPeriod.DurationUnit.choices, required=False, allow_null=True)
     is_active = serializers.BooleanField(required=False, default=True)
+    allow_rollover = serializers.BooleanField(required=False, default=False)
 
     def validated_payload(self) -> dict:
         return dict(self.validated_data)

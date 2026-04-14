@@ -193,6 +193,32 @@ Every spending-limit rule carries a `period` that defines the time window over w
 | `yearly`          | January 1st `00:00` of the current year to now                |
 | `custom`          | `now − duration` to now (rolling lookback window — see below) |
 
+#### Rollover
+
+The `allow_rollover` flag (default `False`) is available on any amount-based limit that uses a fixed calendar period (`hourly`, `daily`, `weekly`, `monthly`, or `yearly`). It is **not** compatible with `per_transaction` or `custom` periods.
+
+When rollover is enabled, unspent allowance from previous periods accumulates and carries forward. The system checks a **cumulative threshold** rather than resetting at the start of each period:
+
+```
+cumulative_threshold = (completed_periods_since_creation + 1) × base_limit
+```
+
+The check is simply: `total_spent_ever + requested_amount ≤ cumulative_threshold`.
+
+**Example — 10 000 XAF daily limit with rollover ON:**
+
+| Day   | Spent (that day) | Cumulative spent | Cumulative limit | Remaining |
+| ----- | ---------------- | ---------------- | ---------------- | --------- |
+| Day 1 | 5 000            | 5 000            | 10 000           | 5 000     |
+| Day 2 | 5 000            | 10 000           | 20 000           | 10 000    |
+| Day 3 | 10 000           | 20 000           | 30 000           | 10 000    |
+
+**Constraints:**
+
+- Only applicable to `limit_type = amount`. Percentage-based limits cannot use rollover.
+- Only applicable to fixed calendar periods (`hourly`, `daily`, `weekly`, `monthly`, `yearly`).
+- Setting `allow_rollover=True` on an incompatible limit raises error code `329` (`SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED`).
+
 #### Custom rolling-window periods
 
 When `period="custom"`, a `CustomPeriod` record is stored alongside the rule. It carries:
@@ -319,6 +345,17 @@ custom_limit_rule = WalletSpendingLimitService.set_beneficiary_spending_limit(
 	amount="2000.00",
 	duration_value=2,
 	duration_unit="hours",
+)
+
+# Daily limit with rollover ON: unspent XAF carries forward to the next day
+rollover_limit = WalletSpendingLimitService.set_beneficiary_spending_limit(
+	user_id=wallet.user_id,
+	wallet_id=wallet.id,
+	beneficiary_user_id=beneficiary.user_id,
+	limit_type="amount",
+	period="daily",
+	amount="10000.00",
+	allow_rollover=True,
 )
 
 beneficiary_limit_rule = WalletSpendingLimitService.set_beneficiary_spending_limit(
@@ -485,6 +522,7 @@ The wallet module uses numeric codes so clients can localize messages independen
 | 325  | `SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED`              | Requested spend exceeds the configured per-transaction limit.                                 |
 | 326  | `SPENDING_LIMIT_PERIOD_EXCEEDED`                       | Requested spend exceeds the configured spending limit for the active period.                  |
 | 327  | `SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD`               | No active custom period is configured for this spending limit.                                |
+| 329  | `SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED`                | Rollover is only supported for amount-based limits on fixed calendar periods (hourly, daily, weekly, monthly, yearly). |
 
 ## Service reference
 
