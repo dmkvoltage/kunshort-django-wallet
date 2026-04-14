@@ -17,6 +17,7 @@ from wallets.exceptions import (
     InvalidWalletCurrencyError,
     InvalidWalletSpendingLimitError,
     InvalidWalletTransferError,
+    WalletBalanceVisibilityError,
     WalletBeneficiaryNotFoundError,
     WalletErrorCode,
     WalletOwnershipError,
@@ -1162,3 +1163,109 @@ class WalletRolloverTests(TestCase):
                 allow_rollover=True,
             )
         self.assertEqual(ctx.exception.code, WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED)
+
+
+class WalletBalanceVisibilityTests(TestCase):
+    """Tests for the beneficiary balance visibility feature."""
+
+    def _setup(self):
+        owner_id = uuid4()
+        beneficiary_user_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Main", balance="5000.00")
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=owner_id, wallet_id=wallet.id, beneficiary_user_id=beneficiary_user_id
+        )
+        return owner_id, beneficiary_user_id, wallet
+
+    def test_owner_can_grant_balance_visibility_to_beneficiary(self):
+        owner_id, beneficiary_user_id, wallet = self._setup()
+
+        beneficiary = WalletBeneficiaryService.set_balance_visibility(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            can_view_balance=True,
+        )
+
+        self.assertTrue(beneficiary.can_view_balance)
+
+    def test_beneficiary_with_permission_can_read_wallet_balance(self):
+        owner_id, beneficiary_user_id, wallet = self._setup()
+
+        WalletBeneficiaryService.set_balance_visibility(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            can_view_balance=True,
+        )
+
+        result = WalletBeneficiaryService.get_wallet_balance_for_beneficiary(
+            user_id=beneficiary_user_id,
+            wallet_id=wallet.id,
+        )
+
+        self.assertEqual(result.balance, wallet.balance)
+        self.assertEqual(result.id, wallet.id)
+
+    def test_beneficiary_without_permission_cannot_read_wallet_balance(self):
+        owner_id, beneficiary_user_id, wallet = self._setup()
+
+        with self.assertRaises(WalletBalanceVisibilityError) as ctx:
+            WalletBeneficiaryService.get_wallet_balance_for_beneficiary(
+                user_id=beneficiary_user_id,
+                wallet_id=wallet.id,
+            )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED)
+
+    def test_owner_can_revoke_balance_visibility(self):
+        owner_id, beneficiary_user_id, wallet = self._setup()
+
+        WalletBeneficiaryService.set_balance_visibility(
+            user_id=owner_id, wallet_id=wallet.id, beneficiary_user_id=beneficiary_user_id, can_view_balance=True
+        )
+        WalletBeneficiaryService.set_balance_visibility(
+            user_id=owner_id, wallet_id=wallet.id, beneficiary_user_id=beneficiary_user_id, can_view_balance=False
+        )
+
+        with self.assertRaises(WalletBalanceVisibilityError):
+            WalletBeneficiaryService.get_wallet_balance_for_beneficiary(
+                user_id=beneficiary_user_id, wallet_id=wallet.id
+            )
+
+    def test_owner_always_can_read_own_wallet_balance(self):
+        owner_id, _, wallet = self._setup()
+
+        result = WalletBeneficiaryService.get_wallet_balance_for_beneficiary(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+        )
+
+        self.assertEqual(result.balance, wallet.balance)
+
+    def test_cannot_change_balance_visibility_for_owner_beneficiary(self):
+        owner_id, _, wallet = self._setup()
+
+        with self.assertRaises(WalletBalanceVisibilityError) as ctx:
+            WalletBeneficiaryService.set_balance_visibility(
+                user_id=owner_id,
+                wallet_id=wallet.id,
+                beneficiary_user_id=owner_id,
+                can_view_balance=False,
+            )
+        self.assertEqual(ctx.exception.code, WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN)
+
+    def test_set_visibility_records_activity_log(self):
+        owner_id, beneficiary_user_id, wallet = self._setup()
+
+        WalletBeneficiaryService.set_balance_visibility(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            can_view_balance=True,
+        )
+
+        activity = WalletActivities.objects.for_wallet(wallet.id).filter(
+            action_type=WalletActivities.ActionType.BALANCE_VISIBILITY_CHANGED
+        ).first()
+        self.assertIsNotNone(activity)
+        self.assertTrue(activity.metadata["can_view_balance"])

@@ -51,8 +51,8 @@ class WalletTransactionAdmin(admin.ModelAdmin):
 
 @admin.register(WalletBeneficiary)
 class WalletBeneficiaryAdmin(admin.ModelAdmin):
-    list_display = ("id", "wallet", "user_id", "label", "is_owner", "created_at")
-    list_filter = ("is_owner", "created_at")
+    list_display = ("id", "wallet", "user_id", "label", "is_owner", "can_view_balance", "created_at")
+    list_filter = ("is_owner", "can_view_balance", "created_at")
     search_fields = ("id", "wallet__id", "user_id", "label")
     ordering = ("-created_at",)
 

@@ -55,6 +55,7 @@ def _beneficiary_to_dict(beneficiary) -> dict:
         "user_id": beneficiary.user_id,
         "label": beneficiary.label,
         "is_owner": beneficiary.is_owner,
+        "can_view_balance": beneficiary.is_owner or beneficiary.can_view_balance,
         "created_at": beneficiary.created_at.isoformat(),
     }
 
@@ -192,6 +193,18 @@ class BeneficiaryInputSerializer(serializers.Serializer):
     wallet_id = serializers.UUIDField()
     beneficiary_user_id = serializers.CharField()
     label = serializers.CharField(required=False, default="", allow_blank=True)
+
+
+class BeneficiaryBalanceVisibilityInputSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    wallet_id = serializers.UUIDField()
+    beneficiary_user_id = serializers.CharField()
+    can_view_balance = serializers.BooleanField()
+
+
+class BeneficiaryBalanceQuerySerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    wallet_id = serializers.UUIDField()
 
 
 class BeneficiaryListQuerySerializer(serializers.Serializer):
@@ -455,6 +468,42 @@ class BeneficiaryRemoveApiView(APIView):
 
 
 @extend_schema_view(
+    post=extend_schema(
+        summary="Set beneficiary balance visibility",
+        request=BeneficiaryBalanceVisibilityInputSerializer,
+        responses={200: OpenApiResponse(response=OpenApiTypes.OBJECT)},
+    )
+)
+class BeneficiaryBalanceVisibilityApiView(APIView):
+    def post(self, request):
+        serializer = BeneficiaryBalanceVisibilityInputSerializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            beneficiary = WalletBeneficiaryService.set_balance_visibility(**serializer.validated_data)
+            return Response(_beneficiary_to_dict(beneficiary))
+        except Exception as error:
+            return _error_response(error)
+
+
+@extend_schema_view(
+    get=extend_schema(
+        summary="Get wallet balance as a beneficiary",
+        parameters=[BeneficiaryBalanceQuerySerializer],
+        responses={200: OpenApiResponse(response=OpenApiTypes.OBJECT)},
+    )
+)
+class BeneficiaryWalletBalanceApiView(APIView):
+    def get(self, request):
+        serializer = BeneficiaryBalanceQuerySerializer(data=request.query_params)
+        try:
+            serializer.is_valid(raise_exception=True)
+            wallet = WalletBeneficiaryService.get_wallet_balance_for_beneficiary(**serializer.validated_data)
+            return Response({"wallet_id": str(wallet.id), "balance": str(wallet.balance), "currency_code": wallet.currency_code})
+        except Exception as error:
+            return _error_response(error)
+
+
+@extend_schema_view(
     get=extend_schema(
         summary="List beneficiary activities",
         parameters=[BeneficiaryActivityQuerySerializer],
@@ -648,6 +697,8 @@ api_urlpatterns = [
     ("wallets/beneficiary-wallet-history/", BeneficiaryWalletHistoryApiView.as_view(), "api-beneficiary-wallet-history"),
     ("wallets/beneficiaries/", BeneficiariesApiView.as_view(), "api-beneficiaries"),
     ("wallets/beneficiaries/remove/", BeneficiaryRemoveApiView.as_view(), "api-beneficiary-remove"),
+    ("wallets/beneficiaries/balance-visibility/", BeneficiaryBalanceVisibilityApiView.as_view(), "api-beneficiary-balance-visibility"),
+    ("wallets/beneficiaries/balance/", BeneficiaryWalletBalanceApiView.as_view(), "api-beneficiary-balance"),
     ("wallets/beneficiary-activities/", BeneficiaryActivitiesApiView.as_view(), "api-beneficiary-activities"),
     ("wallets/beneficiary-spending-history/", BeneficiarySpendingHistoryApiView.as_view(), "api-beneficiary-spending-history"),
     ("wallets/transfers/", WalletTransferApiView.as_view(), "api-wallet-transfer"),

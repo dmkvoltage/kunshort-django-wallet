@@ -40,6 +40,8 @@ class WalletErrorCode:
     SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD = 327
     TRANSFER_SOURCE_EQUALS_DESTINATION = 328
     SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED = 329
+    BALANCE_VISIBILITY_NOT_PERMITTED = 330
+    OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN = 331
 
 
 WALLET_ERROR_MESSAGES = {
@@ -81,6 +83,12 @@ WALLET_ERROR_MESSAGES = {
     WalletErrorCode.TRANSFER_SOURCE_EQUALS_DESTINATION: "Source and destination wallets must be different.",
     WalletErrorCode.SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED: (
         "Rollover is only supported for amount-based limits on fixed calendar periods (hourly, daily, weekly, monthly, yearly)."
+    ),
+    WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED: (
+        "You do not have permission to view this wallet's balance."
+    ),
+    WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN: (
+        "Cannot change balance visibility for the wallet owner — the owner always has access."
     ),
 }
 
@@ -194,4 +202,11 @@ class WalletSpendingLimitExceededError(WalletError):
     """Raised when an attempted spend exceeds an active spending rule."""
 
     default_code = WalletErrorCode.SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletBalanceVisibilityError(WalletError):
+    """Raised for balance-visibility permission and configuration errors."""
+
+    default_code = WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED
     default_message = WALLET_ERROR_MESSAGES[default_code]

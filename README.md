@@ -169,6 +169,8 @@ curl -X POST http://127.0.0.1:8000/api/wallets/ \
 | `GET`  | `/api/wallets/beneficiaries/?user_id=...&wallet_id=...`                                      | List beneficiaries for a wallet                 |
 | `POST` | `/api/wallets/beneficiaries/`                                                                | Add a beneficiary                               |
 | `POST` | `/api/wallets/beneficiaries/remove/`                                                         | Remove a non-owner beneficiary                  |
+| `POST` | `/api/wallets/beneficiaries/balance-visibility/`                                             | Grant or revoke balance visibility for a beneficiary |
+| `GET`  | `/api/wallets/beneficiaries/balance/?user_id=...&wallet_id=...`                              | Read the wallet balance as a beneficiary        |
 | `GET`  | `/api/wallets/beneficiary-wallet-history/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List beneficiary transactions inside one wallet |
 | `GET`  | `/api/wallets/beneficiary-activities/?user_id=...&wallet_id=...`                             | List beneficiary activity logs                  |
 | `GET`  | `/api/wallets/beneficiary-spending-history/?user_id=...&wallet_id=...`                       | List beneficiary spending-related activities    |
@@ -443,6 +445,16 @@ The following models are registered in admin:
 - The beneficiary history service can return all beneficiary actions or only beneficiary spending history
 - The wallet transaction history service can also return beneficiary-linked wallet transactions directly
 
+## Balance visibility
+
+- By default, beneficiaries **cannot** see the wallet's balance — only the owner can
+- The wallet owner can grant or revoke balance visibility per beneficiary using `WalletBeneficiaryService.set_balance_visibility(...)`
+- The `can_view_balance` flag is stored on `WalletBeneficiary` and is `False` by default
+- The owner beneficiary always has implicit access; attempting to change visibility for the owner raises error `331`
+- A beneficiary with access uses `WalletBeneficiaryService.get_wallet_balance_for_beneficiary(...)` to read the current balance
+- A beneficiary without permission raises error `330` (`BALANCE_VISIBILITY_NOT_PERMITTED`)
+- Every visibility change is recorded in `WalletActivities` (action type `balance_visibility_changed`) and in `WalletBeneficiaryActivity`
+
 ## Transfers and limits
 
 - Transfers are only allowed to users already attached as beneficiaries on the source wallet
@@ -523,6 +535,8 @@ The wallet module uses numeric codes so clients can localize messages independen
 | 326  | `SPENDING_LIMIT_PERIOD_EXCEEDED`                       | Requested spend exceeds the configured spending limit for the active period.                  |
 | 327  | `SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD`               | No active custom period is configured for this spending limit.                                |
 | 329  | `SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED`                | Rollover is only supported for amount-based limits on fixed calendar periods (hourly, daily, weekly, monthly, yearly). |
+| 330  | `BALANCE_VISIBILITY_NOT_PERMITTED`                     | You do not have permission to view this wallet's balance.                                                              |
+| 331  | `OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN`            | Cannot change balance visibility for the wallet owner — the owner always has access.                                   |
 
 ## Service reference
 
@@ -535,6 +549,8 @@ The wallet module uses numeric codes so clients can localize messages independen
 - `WalletTransactionHistoryService.list_beneficiary_wallet_history(...)`: returns wallet transactions for a beneficiary user within one wallet.
 - `WalletBeneficiaryService.add_beneficiary(...)`: adds a new beneficiary to a wallet.
 - `WalletBeneficiaryService.remove_beneficiary(...)`: removes a non-owner beneficiary from a wallet.
+- `WalletBeneficiaryService.set_balance_visibility(...)`: grants or revokes the ability for a beneficiary to read the wallet balance.
+- `WalletBeneficiaryService.get_wallet_balance_for_beneficiary(...)`: returns the wallet object for a beneficiary that has balance visibility.
 - `WalletBeneficiaryService.list_wallet_beneficiaries(...)`: lists all beneficiaries, including the owner-beneficiary.
 - `WalletBeneficiaryHistoryService.list_beneficiary_history(...)`: returns beneficiary activity history.
 - `WalletBeneficiaryHistoryService.list_beneficiary_spending_history(...)`: returns beneficiary spending-related activity only.

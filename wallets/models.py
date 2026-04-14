@@ -197,6 +197,7 @@ class WalletBeneficiary(models.Model):
     user_id = models.CharField(max_length=255, db_index=True)
     label = models.CharField(max_length=100, blank=True)
     is_owner = models.BooleanField(default=False)
+    can_view_balance = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = WalletBeneficiaryQuerySet.as_manager()
@@ -237,6 +238,7 @@ class WalletBeneficiaryActivity(models.Model):
         TRANSFER_OUT = "transfer_out", "Transfer out"
         SPENDING_LIMIT_SET = "spending_limit_set", "Spending limit set"
         SPENDING_LIMIT_UPDATED = "spending_limit_updated", "Spending limit updated"
+        BALANCE_VISIBILITY_CHANGED = "balance_visibility_changed", "Balance visibility changed"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     wallet = models.ForeignKey(
@@ -413,6 +415,7 @@ class WalletActivities(models.Model):
         TRANSFER_OUT = "transfer_out", "Transfer out"
         SPENDING_LIMIT_SET = "spending_limit_set", "Spending limit set"
         SPENDING_LIMIT_UPDATED = "spending_limit_updated", "Spending limit updated"
+        BALANCE_VISIBILITY_CHANGED = "balance_visibility_changed", "Balance visibility changed"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="activities")

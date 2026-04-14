@@ -20,6 +20,7 @@ from .exceptions import (
     InvalidWalletCurrencyError,
     InvalidWalletSpendingLimitError,
     InvalidWalletTransferError,
+    WalletBalanceVisibilityError,
     WalletErrorCode,
     WalletBeneficiaryNotFoundError,
     WalletOwnershipError,
@@ -568,6 +569,71 @@ class WalletBeneficiaryService(BaseWalletService):
     def list_wallet_beneficiaries(*, user_id: UserIdentifier, wallet_id: UUID | str) -> WalletBeneficiaryQuerySet:
         wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
         return WalletBeneficiary.objects.for_wallet(wallet.id)
+
+    @staticmethod
+    @transaction.atomic
+    def set_balance_visibility(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+        beneficiary_user_id: UserIdentifier,
+        can_view_balance: bool,
+    ) -> WalletBeneficiary:
+        wallet = WalletBeneficiaryService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
+        beneficiary = WalletBeneficiaryService.get_beneficiary_for_wallet(
+            wallet=wallet,
+            beneficiary_user_id=beneficiary_user_id,
+            for_update=True,
+        )
+        if beneficiary.is_owner:
+            raise WalletBalanceVisibilityError(code=WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN)
+
+        beneficiary.can_view_balance = can_view_balance
+        beneficiary.save(update_fields=["can_view_balance"])
+
+        WalletBeneficiaryService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.BALANCE_VISIBILITY_CHANGED,
+            metadata={
+                "beneficiary_user_id": beneficiary.user_id,
+                "can_view_balance": can_view_balance,
+            },
+        )
+        WalletBeneficiaryService.create_wallet_beneficiary_activity_record(
+            wallet=wallet,
+            beneficiary=beneficiary,
+            user_id=beneficiary.user_id,
+            action_type=WalletBeneficiaryActivity.ActionType.BALANCE_VISIBILITY_CHANGED,
+            metadata={
+                "can_view_balance": can_view_balance,
+                "actor_user_id": wallet.user_id,
+                "actor_transaction_by": WalletTransaction.TransactionBy.OWNER,
+            },
+        )
+        return beneficiary
+
+    @staticmethod
+    def get_wallet_balance_for_beneficiary(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+    ) -> Wallet:
+        normalized_user_id = WalletBeneficiaryService.normalize_user_id(user_id)
+        try:
+            wallet = Wallet.objects.get(pk=wallet_id)
+        except Wallet.DoesNotExist:
+            raise WalletBeneficiaryNotFoundError(code=WalletErrorCode.BENEFICIARY_NOT_FOUND)
+
+        beneficiary = WalletBeneficiaryService.get_beneficiary_for_wallet(
+            wallet=wallet,
+            beneficiary_user_id=normalized_user_id,
+        )
+        if not beneficiary.is_owner and not beneficiary.can_view_balance:
+            raise WalletBalanceVisibilityError(code=WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED)
+
+        return wallet
 
 
 class WalletSpendingLimitService(BaseWalletService):
