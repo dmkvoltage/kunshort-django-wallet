@@ -5,6 +5,7 @@ This repository contains a reusable Django app named `wallets` plus a small loca
 The installable package is intended for service consumption: wallet creation, beneficiary management, transfers, spending limits, activity history, and stable numeric error codes.
 
 Package identity:
+
 - Distribution name: `kunshort-django-wallet`
 - Version: `1.0.0`
 - Python import path: `wallets`
@@ -18,7 +19,7 @@ Package identity:
 - Dedicated wallet activity history via `WalletActivities`
 - Dedicated beneficiary activity history via `WalletBeneficiaryActivity`
 - Stored spending usage rows via `WalletSpending`
-- Custom limit windows via `CustomPeriod`
+- Custom rolling-window durations via `CustomPeriod`
 - A `WalletService` class for wallet creation and retrieval
 - A `WalletTopUpService` class for atomic wallet funding
 - A `WalletDebitService` class for atomic wallet withdrawals
@@ -52,7 +53,7 @@ Package identity:
 - `WalletBeneficiaryActivity`: beneficiary-focused audit log for beneficiary add/remove, transfer-out, and beneficiary spending-limit events.
 - `WalletSpendingLimit`: wallet-level or beneficiary-level spending rules.
 - `WalletSpending`: persisted spending usage rows used when evaluating limits over time.
-- `CustomPeriod`: custom active windows linked to `WalletSpendingLimit` when `period="custom"`.
+- `CustomPeriod`: rolling-window duration linked to `WalletSpendingLimit` when `period="custom"`. Stores a `duration_value` and `duration_unit` (hours, days, weeks, months, years) that define a sliding lookback window evaluated at the moment of each spend.
 
 ## Identity rules
 
@@ -178,7 +179,40 @@ curl -X POST http://127.0.0.1:8000/api/wallets/ \
 | ------ | ------------------------- | ---------------------------------------------------------------------- |
 | `POST` | `/api/wallets/transfers/` | Transfer funds from a wallet to a beneficiary-owned destination wallet |
 
-#### Spending limits
+#### Spending limit periods
+
+Every spending-limit rule carries a `period` that defines the time window over which the limit is enforced:
+
+| Period            | Window evaluated at spend time                                |
+| ----------------- | ------------------------------------------------------------- |
+| `per_transaction` | Only the current transaction amount — no historical sum       |
+| `hourly`          | Start of the current hour (`:00`) to now                      |
+| `daily`           | Start of today (`00:00`) to now                               |
+| `weekly`          | Monday `00:00` of the current week to now                     |
+| `monthly`         | First day of the current month `00:00` to now                 |
+| `yearly`          | January 1st `00:00` of the current year to now                |
+| `custom`          | `now − duration` to now (rolling lookback window — see below) |
+
+#### Custom rolling-window periods
+
+When `period="custom"`, a `CustomPeriod` record is stored alongside the rule. It carries:
+
+- `duration_value` — a positive integer (e.g. `2`)
+- `duration_unit` — one of `hours`, `days`, `weeks`, `months`, `years`
+
+At the moment of each transaction, the system subtracts the duration from the current time and sums all spend rows that fall inside the resulting window. The window is always anchored to _now_, so it slides forward continuously.
+
+**Example — 2-hour rolling window, 2 000 XAF limit:**
+
+| Time  | Event                                       | Window checked | Spent in window        | Remaining |
+| ----- | ------------------------------------------- | -------------- | ---------------------- | --------- |
+| 17:00 | Limit set: 2 000 XAF every 2 hours          | —              | —                      | 2 000     |
+| 17:00 | Beneficiary spends 1 000 XAF                | 15:00 → 17:00  | 1 000                  | 1 000     |
+| 17:10 | Beneficiary spends 1 000 XAF                | 15:10 → 17:10  | 1 000 + 1 000          | 0         |
+| 19:01 | Beneficiary tries to spend (window shifted) | 17:01 → 19:01  | 1 000 (17:10 txn only) | 1 000     |
+| 19:11 | Window has rolled past both transactions    | 17:11 → 19:11  | 0                      | 2 000     |
+
+The 17:00 transaction drops out of the 2-hour window at 19:01, and the 17:10 transaction drops out at 19:11. After 19:11 the full 2 000 XAF allowance is available again.
 
 | Method | Path                                                                                          | Purpose                                                     |
 | ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -275,6 +309,18 @@ limit_rule = WalletSpendingLimitService.set_wallet_spending_limit(
 	amount="5000.00",
 )
 
+# Custom rolling-window: 2 000 XAF per every 2 hours
+custom_limit_rule = WalletSpendingLimitService.set_beneficiary_spending_limit(
+	user_id=wallet.user_id,
+	wallet_id=wallet.id,
+	beneficiary_user_id=beneficiary.user_id,
+	limit_type="amount",
+	period="custom",
+	amount="2000.00",
+	duration_value=2,
+	duration_unit="hours",
+)
+
 beneficiary_limit_rule = WalletSpendingLimitService.set_beneficiary_spending_limit(
 	user_id=wallet.user_id,
 	wallet_id=wallet.id,
@@ -316,6 +362,7 @@ To make the models visible in django-admin in a consuming project:
 5. Create or use a superuser and open `/admin/`.
 
 The following models are registered in admin:
+
 - `Wallet`
 - `WalletTransaction`
 - `WalletBeneficiary`
@@ -367,7 +414,8 @@ The following models are registered in admin:
 - Wallet-level spending limits can be configured by fixed amount or percentage
 - Beneficiary-level spending limits can be configured independently per wallet beneficiary
 - Spending limits can be updated explicitly with dedicated update services
-- Limits support `per_transaction`, `daily`, `weekly`, `monthly`, and `custom` periods
+- Limits support `per_transaction`, `hourly`, `daily`, `weekly`, `monthly`, `yearly`, and `custom` periods
+- `custom` periods use a rolling lookback window defined by a duration — for example, `2 hours` means the system sums all spend in the last 2 hours from the moment of each transaction
 - Active beneficiary percentage limits for the same wallet and period cannot exceed `100%`
 - Re-running the same spending-limit rule updates the existing rule instead of creating duplicates
 - Beneficiary limits are caps, not reserved balances, so the wallet owner can still spend from the wallet as long as the actual balance and wallet-level limits allow it
@@ -430,8 +478,8 @@ The wallet module uses numeric codes so clients can localize messages independen
 | 318  | `SPENDING_LIMIT_PERCENTAGE_REQUIRED`                   | Percentage is required for percentage-based spending limits.                                  |
 | 319  | `SPENDING_LIMIT_TYPE_UNSUPPORTED`                      | Unsupported spending limit type.                                                              |
 | 320  | `SPENDING_LIMIT_VALIDATION_FAILED`                     | Wallet spending limit configuration is invalid.                                               |
-| 321  | `SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED`                | Custom period limits require both active_from and active_to.                                  |
-| 322  | `SPENDING_LIMIT_CUSTOM_PERIOD_INVALID`                 | active_to must be greater than active_from.                                                   |
+| 321  | `SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED`                | Custom period limits require duration_value and duration_unit.                                |
+| 322  | `SPENDING_LIMIT_CUSTOM_PERIOD_INVALID`                 | duration_value must be a positive integer of at least 1.                                      |
 | 323  | `SPENDING_LIMIT_WALLET_MISMATCH`                       | The supplied spending limit does not belong to the supplied wallet.                           |
 | 324  | `SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED` | Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%. |
 | 325  | `SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED`              | Requested spend exceeds the configured per-transaction limit.                                 |
