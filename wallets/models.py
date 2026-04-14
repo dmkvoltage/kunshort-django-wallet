@@ -293,9 +293,11 @@ class WalletSpendingLimit(models.Model):
 
     class Period(models.TextChoices):
         PER_TRANSACTION = "per_transaction", "Per transaction"
+        HOURLY = "hourly", "Hourly"
         DAILY = "daily", "Daily"
         WEEKLY = "weekly", "Weekly"
         MONTHLY = "monthly", "Monthly"
+        YEARLY = "yearly", "Yearly"
         CUSTOM = "custom", "Custom"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
@@ -367,7 +369,14 @@ class WalletSpendingLimit(models.Model):
 
 
 class CustomPeriod(models.Model):
-    """Custom active window linked to a spending limit."""
+    """Rolling-window duration linked to a custom spending limit."""
+
+    class DurationUnit(models.TextChoices):
+        HOURS = "hours", "Hours"
+        DAYS = "days", "Days"
+        WEEKS = "weeks", "Weeks"
+        MONTHS = "months", "Months"
+        YEARS = "years", "Years"
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     spending_limit = models.ForeignKey(
@@ -375,19 +384,19 @@ class CustomPeriod(models.Model):
         on_delete=models.CASCADE,
         related_name="custom_periods",
     )
-    starts_at = models.DateTimeField()
-    ends_at = models.DateTimeField()
+    duration_value = models.PositiveIntegerField()
+    duration_unit = models.CharField(max_length=10, choices=DurationUnit.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ("starts_at",)
+        ordering = ("created_at",)
 
     def clean(self) -> None:
-        if self.ends_at <= self.starts_at:
-            raise ValidationError({"ends_at": "ends_at must be greater than starts_at."})
+        if self.duration_value < 1:
+            raise ValidationError({"duration_value": "Duration must be at least 1."})
 
     def __str__(self) -> str:
-        return f"{self.starts_at} - {self.ends_at}"
+        return f"{self.duration_value} {self.duration_unit}"
 
 
 class WalletActivities(models.Model):

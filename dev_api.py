@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from wallets.exceptions import WalletError, serialize_wallet_error
-from wallets.models import WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
+from wallets.models import CustomPeriod, WalletActivities, WalletBeneficiaryActivity, WalletSpendingLimit, WalletTransaction
 from wallets.services import (
     WalletBeneficiaryHistoryService,
     WalletBeneficiaryService,
@@ -111,8 +111,8 @@ def _spending_limit_to_dict(spending_limit) -> dict:
     custom_periods = [
         {
             "id": str(custom_period.id),
-            "starts_at": custom_period.starts_at.isoformat(),
-            "ends_at": custom_period.ends_at.isoformat(),
+            "duration_value": custom_period.duration_value,
+            "duration_unit": custom_period.duration_unit,
         }
         for custom_period in spending_limit.custom_periods.all()
     ]
@@ -235,15 +235,12 @@ class WalletLimitInputSerializer(serializers.Serializer):
     period = serializers.ChoiceField(choices=WalletSpendingLimit.Period.choices, required=False, default=WalletSpendingLimit.Period.PER_TRANSACTION)
     amount = serializers.DecimalField(max_digits=18, decimal_places=2, required=False, allow_null=True)
     percentage = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, allow_null=True)
-    active_from = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    active_to = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    duration_value = serializers.IntegerField(required=False, allow_null=True, min_value=1)
+    duration_unit = serializers.ChoiceField(choices=CustomPeriod.DurationUnit.choices, required=False, allow_null=True)
     is_active = serializers.BooleanField(required=False, default=True)
 
     def validated_payload(self) -> dict:
-        payload = dict(self.validated_data)
-        payload["active_from"] = _parse_optional_datetime(payload.get("active_from"))
-        payload["active_to"] = _parse_optional_datetime(payload.get("active_to"))
-        return payload
+        return dict(self.validated_data)
 
 
 class BeneficiaryLimitInputSerializer(WalletLimitInputSerializer):

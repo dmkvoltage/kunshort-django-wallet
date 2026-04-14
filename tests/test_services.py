@@ -821,7 +821,6 @@ class WalletSpendingLimitServiceTests(TestCase):
     def test_set_custom_wallet_limit_creates_custom_period(self):
         owner_id = uuid4()
         wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
-        now = timezone.now()
 
         spending_limit = WalletSpendingLimitService.set_wallet_spending_limit(
             user_id=owner_id,
@@ -829,8 +828,8 @@ class WalletSpendingLimitServiceTests(TestCase):
             limit_type=WalletSpendingLimit.LimitType.AMOUNT,
             period=WalletSpendingLimit.Period.CUSTOM,
             amount="10.00",
-            active_from=now,
-            active_to=now + timezone.timedelta(days=1),
+            duration_value=2,
+            duration_unit="hours",
         )
 
         self.assertTrue(CustomPeriod.objects.filter(spending_limit=spending_limit).exists())
@@ -844,7 +843,6 @@ class WalletSpendingLimitServiceTests(TestCase):
             wallet_id=wallet.id,
             beneficiary_user_id=beneficiary_user_id,
         )
-        now = timezone.now()
 
         spending_limit = WalletSpendingLimitService.set_beneficiary_spending_limit(
             user_id=owner_id,
@@ -853,8 +851,8 @@ class WalletSpendingLimitServiceTests(TestCase):
             limit_type=WalletSpendingLimit.LimitType.AMOUNT,
             period=WalletSpendingLimit.Period.CUSTOM,
             amount="10.00",
-            active_from=now,
-            active_to=now + timezone.timedelta(days=1),
+            duration_value=1,
+            duration_unit="days",
         )
 
         self.assertEqual(spending_limit.scope, WalletSpendingLimit.Scope.BENEFICIARY)
@@ -870,7 +868,6 @@ class WalletSpendingLimitServiceTests(TestCase):
             wallet_id=wallet.id,
             beneficiary_user_id=beneficiary_user_id,
         )
-        now = timezone.now()
 
         with self.assertRaises(InvalidWalletSpendingLimitError):
             WalletSpendingLimitService.set_beneficiary_spending_limit(
@@ -880,14 +877,11 @@ class WalletSpendingLimitServiceTests(TestCase):
                 limit_type=WalletSpendingLimit.LimitType.AMOUNT,
                 period=WalletSpendingLimit.Period.CUSTOM,
                 amount="10.00",
-                active_from=now,
-                active_to=now,
             )
 
     def test_set_custom_wallet_limit_requires_valid_window(self):
         owner_id = uuid4()
         wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="100.00")
-        now = timezone.now()
 
         with self.assertRaises(InvalidWalletSpendingLimitError):
             WalletSpendingLimitService.set_wallet_spending_limit(
@@ -896,8 +890,6 @@ class WalletSpendingLimitServiceTests(TestCase):
                 limit_type=WalletSpendingLimit.LimitType.AMOUNT,
                 period=WalletSpendingLimit.Period.CUSTOM,
                 amount="10.00",
-                active_from=now,
-                active_to=now,
             )
 
 

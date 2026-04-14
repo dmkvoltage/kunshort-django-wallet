@@ -62,8 +62,8 @@ WALLET_ERROR_MESSAGES = {
     WalletErrorCode.SPENDING_LIMIT_PERCENTAGE_REQUIRED: "Percentage is required for percentage-based spending limits.",
     WalletErrorCode.SPENDING_LIMIT_TYPE_UNSUPPORTED: "Unsupported spending limit type.",
     WalletErrorCode.SPENDING_LIMIT_VALIDATION_FAILED: "Wallet spending limit configuration is invalid.",
-    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED: "Custom period limits require both active_from and active_to.",
-    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID: "active_to must be greater than active_from.",
+    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED: "Custom period limits require duration_value and duration_unit.",
+    WalletErrorCode.SPENDING_LIMIT_CUSTOM_PERIOD_INVALID: "duration_value must be a positive integer of at least 1.",
     WalletErrorCode.SPENDING_LIMIT_WALLET_MISMATCH: "The supplied spending limit does not belong to the supplied wallet.",
     WalletErrorCode.SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED: (
         "Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%."
