@@ -44,7 +44,7 @@ Package identity:
 
 ## Data model summary
 
-![Wallet model design](Model.png)
+![Wallet model design](Models.png)
 
 - `Wallet`: the owned balance container. Includes `default_wallet`, `currency_code`, and `balance`.
 - `WalletBeneficiary`: wallet-scoped participants. The owner is automatically stored here as `is_owner=True`.

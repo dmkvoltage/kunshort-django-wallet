@@ -5,8 +5,15 @@ build/
 dist/
 wheels/
 *.egg-info
-db.sqlite3
+db.sqlite3.db
 
 # Virtual environments
 .venv
+/db.sqlite3.db
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/  
+db.sqlite3
 /db.sqlite3
