@@ -93,7 +93,7 @@ uv build
 
 The built artifacts are written to `dist/`.
 
-The wheel now contains only the reusable `wallets` package. Development-only files such as the local Django project in `config/`, the optional API module, and the repository test suite are kept out of the installable package.
+The wheel now contains only the reusable `wallets` package. Development-only files such as the local Django project in `config/` and the repository test suite are kept out of the installable package.
 
 The packaged library still includes `wallets.admin`, so consumers who add `wallets` to `INSTALLED_APPS` will be able to view and manage the wallet models from Django admin.
 
@@ -106,156 +106,6 @@ pip install kunshort-django-wallet==1.0.0
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.
 
 A minimal consumer integration walkthrough is available in `CONSUMER_GUIDE.md`.
-
-## Optional Test API
-
-The repository also includes a DRF-based test API for local development, but it is not part of the packaged library.
-
-- The API implementation lives in `dev_api.py`.
-- DRF and OpenAPI dependencies are optional extras.
-- All routes are mounted under `/api/`.
-- Wallet-domain failures return the same numeric error codes documented in this README.
-
-Start the server with:
-
-```bash
-uv sync --extra api
-uv run python manage.py runserver
-```
-
-Open the interactive documentation at:
-
-```text
-http://127.0.0.1:8000/api/docs/
-```
-
-The raw OpenAPI schema is available at:
-
-```text
-http://127.0.0.1:8000/api/schema/
-```
-
-Example request:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/wallets/ \
-	-H "Content-Type: application/json" \
-	-d '{
-		"user_id": "user-123",
-		"name": "Primary Wallet",
-		"currency_code": "XAF"
-	}'
-```
-
-### API endpoints
-
-#### Wallets
-
-| Method | Path                                                 | Purpose                                   |
-| ------ | ---------------------------------------------------- | ----------------------------------------- |
-| `GET`  | `/api/wallets/?user_id=...`                          | List wallets for a user                   |
-| `POST` | `/api/wallets/`                                      | Create a wallet with zero opening balance |
-| `POST` | `/api/wallets/default/`                              | Set a wallet as default                   |
-| `POST` | `/api/wallets/top-up/`                               | Top up a wallet                           |
-| `POST` | `/api/wallets/debit/`                                | Debit a wallet                            |
-| `GET`  | `/api/wallets/history/?user_id=...&wallet_id=...`    | List wallet transaction history           |
-| `GET`  | `/api/wallets/user-history/?user_id=...`             | List all transactions for a user          |
-| `GET`  | `/api/wallets/activities/?user_id=...&wallet_id=...` | List wallet-wide activity logs            |
-
-#### Beneficiaries
-
-| Method | Path                                                                                         | Purpose                                         |
-| ------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| `GET`  | `/api/wallets/beneficiaries/?user_id=...&wallet_id=...`                                      | List beneficiaries for a wallet                 |
-| `POST` | `/api/wallets/beneficiaries/`                                                                | Add a beneficiary                               |
-| `POST` | `/api/wallets/beneficiaries/remove/`                                                         | Remove a non-owner beneficiary                  |
-| `POST` | `/api/wallets/beneficiaries/balance-visibility/`                                             | Grant or revoke balance visibility for a beneficiary |
-| `GET`  | `/api/wallets/beneficiaries/balance/?user_id=...&wallet_id=...`                              | Read the wallet balance as a beneficiary        |
-| `GET`  | `/api/wallets/beneficiary-wallet-history/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List beneficiary transactions inside one wallet |
-| `GET`  | `/api/wallets/beneficiary-activities/?user_id=...&wallet_id=...`                             | List beneficiary activity logs                  |
-| `GET`  | `/api/wallets/beneficiary-spending-history/?user_id=...&wallet_id=...`                       | List beneficiary spending-related activities    |
-
-#### Transfers
-
-| Method | Path                      | Purpose                                                                |
-| ------ | ------------------------- | ---------------------------------------------------------------------- |
-| `POST` | `/api/wallets/transfers/` | Transfer funds from a wallet to a beneficiary-owned destination wallet |
-
-#### Spending limit periods
-
-Every spending-limit rule carries a `period` that defines the time window over which the limit is enforced:
-
-| Period            | Window evaluated at spend time                                |
-| ----------------- | ------------------------------------------------------------- |
-| `per_transaction` | Only the current transaction amount — no historical sum       |
-| `hourly`          | Start of the current hour (`:00`) to now                      |
-| `daily`           | Start of today (`00:00`) to now                               |
-| `weekly`          | Monday `00:00` of the current week to now                     |
-| `monthly`         | First day of the current month `00:00` to now                 |
-| `yearly`          | January 1st `00:00` of the current year to now                |
-| `custom`          | `now − duration` to now (rolling lookback window — see below) |
-
-#### Rollover
-
-The `allow_rollover` flag (default `False`) is available on any amount-based limit that uses a fixed calendar period (`hourly`, `daily`, `weekly`, `monthly`, or `yearly`). It is **not** compatible with `per_transaction` or `custom` periods.
-
-When rollover is enabled, unspent allowance from previous periods accumulates and carries forward. The system checks a **cumulative threshold** rather than resetting at the start of each period:
-
-```
-cumulative_threshold = (completed_periods_since_creation + 1) × base_limit
-```
-
-The check is simply: `total_spent_ever + requested_amount ≤ cumulative_threshold`.
-
-**Example — 10 000 XAF daily limit with rollover ON:**
-
-| Day   | Spent (that day) | Cumulative spent | Cumulative limit | Remaining |
-| ----- | ---------------- | ---------------- | ---------------- | --------- |
-| Day 1 | 5 000            | 5 000            | 10 000           | 5 000     |
-| Day 2 | 5 000            | 10 000           | 20 000           | 10 000    |
-| Day 3 | 10 000           | 20 000           | 30 000           | 10 000    |
-
-**Constraints:**
-
-- Only applicable to `limit_type = amount`. Percentage-based limits cannot use rollover.
-- Only applicable to fixed calendar periods (`hourly`, `daily`, `weekly`, `monthly`, `yearly`).
-- Setting `allow_rollover=True` on an incompatible limit raises error code `329` (`SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED`).
-
-#### Custom rolling-window periods
-
-When `period="custom"`, a `CustomPeriod` record is stored alongside the rule. It carries:
-
-- `duration_value` — a positive integer (e.g. `2`)
-- `duration_unit` — one of `hours`, `days`, `weeks`, `months`, `years`
-
-At the moment of each transaction, the system subtracts the duration from the current time and sums all spend rows that fall inside the resulting window. The window is always anchored to _now_, so it slides forward continuously.
-
-**Example — 2-hour rolling window, 2 000 XAF limit:**
-
-| Time  | Event                                       | Window checked | Spent in window        | Remaining |
-| ----- | ------------------------------------------- | -------------- | ---------------------- | --------- |
-| 17:00 | Limit set: 2 000 XAF every 2 hours          | —              | —                      | 2 000     |
-| 17:00 | Beneficiary spends 1 000 XAF                | 15:00 → 17:00  | 1 000                  | 1 000     |
-| 17:10 | Beneficiary spends 1 000 XAF                | 15:10 → 17:10  | 1 000 + 1 000          | 0         |
-| 19:01 | Beneficiary tries to spend (window shifted) | 17:01 → 19:01  | 1 000 (17:10 txn only) | 1 000     |
-| 19:11 | Window has rolled past both transactions    | 17:11 → 19:11  | 0                      | 2 000     |
-
-The 17:00 transaction drops out of the 2-hour window at 19:01, and the 17:10 transaction drops out at 19:11. After 19:11 the full 2 000 XAF allowance is available again.
-
-| Method | Path                                                                                          | Purpose                                                     |
-| ------ | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `GET`  | `/api/wallets/spending-limits/?user_id=...&wallet_id=...`                                     | List wallet-level and beneficiary-level limits for a wallet |
-| `POST` | `/api/wallets/spending-limits/`                                                               | Create or update a wallet-level spending limit              |
-| `POST` | `/api/wallets/spending-limits/update/`                                                        | Update a wallet-level spending limit by id                  |
-| `GET`  | `/api/wallets/beneficiary-spending-limits/?user_id=...&wallet_id=...&beneficiary_user_id=...` | List spending limits for one beneficiary                    |
-| `POST` | `/api/wallets/beneficiary-spending-limits/`                                                   | Create or update a beneficiary-level spending limit         |
-| `POST` | `/api/wallets/beneficiary-spending-limits/update/`                                            | Update a beneficiary-level spending limit by id             |
-
-### API response notes
-
-- Successful responses return plain JSON objects or `{ "results": [...] }` collections.
-- Wallet-domain business errors return the documented wallet error payload with numeric codes.
-- Basic request-validation failures return a generic request error payload from DRF-style validation handling.
 
 ## Example service usage
 
@@ -518,22 +368,22 @@ The wallet module uses numeric codes so clients can localize messages independen
 
 ### Balance and spending errors
 
-| Code | Name                                                   | Default message                                                                               |
-| ---- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| 310  | `INSUFFICIENT_BALANCE_DEBIT`                           | Wallet balance is insufficient for this debit.                                                |
-| 315  | `SPENDING_LIMIT_NOT_WALLET_LEVEL`                      | The supplied spending limit is not a wallet-level limit.                                      |
-| 316  | `SPENDING_LIMIT_NOT_BENEFICIARY_LEVEL`                 | The supplied spending limit is not a beneficiary-level limit.                                 |
-| 317  | `SPENDING_LIMIT_AMOUNT_REQUIRED`                       | Amount is required for amount-based spending limits.                                          |
-| 318  | `SPENDING_LIMIT_PERCENTAGE_REQUIRED`                   | Percentage is required for percentage-based spending limits.                                  |
-| 319  | `SPENDING_LIMIT_TYPE_UNSUPPORTED`                      | Unsupported spending limit type.                                                              |
-| 320  | `SPENDING_LIMIT_VALIDATION_FAILED`                     | Wallet spending limit configuration is invalid.                                               |
-| 321  | `SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED`                | Custom period limits require duration_value and duration_unit.                                |
-| 322  | `SPENDING_LIMIT_CUSTOM_PERIOD_INVALID`                 | duration_value must be a positive integer of at least 1.                                      |
-| 323  | `SPENDING_LIMIT_WALLET_MISMATCH`                       | The supplied spending limit does not belong to the supplied wallet.                           |
-| 324  | `SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED` | Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%. |
-| 325  | `SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED`              | Requested spend exceeds the configured per-transaction limit.                                 |
-| 326  | `SPENDING_LIMIT_PERIOD_EXCEEDED`                       | Requested spend exceeds the configured spending limit for the active period.                  |
-| 327  | `SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD`               | No active custom period is configured for this spending limit.                                |
+| Code | Name                                                   | Default message                                                                                                        |
+| ---- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| 310  | `INSUFFICIENT_BALANCE_DEBIT`                           | Wallet balance is insufficient for this debit.                                                                         |
+| 315  | `SPENDING_LIMIT_NOT_WALLET_LEVEL`                      | The supplied spending limit is not a wallet-level limit.                                                               |
+| 316  | `SPENDING_LIMIT_NOT_BENEFICIARY_LEVEL`                 | The supplied spending limit is not a beneficiary-level limit.                                                          |
+| 317  | `SPENDING_LIMIT_AMOUNT_REQUIRED`                       | Amount is required for amount-based spending limits.                                                                   |
+| 318  | `SPENDING_LIMIT_PERCENTAGE_REQUIRED`                   | Percentage is required for percentage-based spending limits.                                                           |
+| 319  | `SPENDING_LIMIT_TYPE_UNSUPPORTED`                      | Unsupported spending limit type.                                                                                       |
+| 320  | `SPENDING_LIMIT_VALIDATION_FAILED`                     | Wallet spending limit configuration is invalid.                                                                        |
+| 321  | `SPENDING_LIMIT_CUSTOM_PERIOD_REQUIRED`                | Custom period limits require duration_value and duration_unit.                                                         |
+| 322  | `SPENDING_LIMIT_CUSTOM_PERIOD_INVALID`                 | duration_value must be a positive integer of at least 1.                                                               |
+| 323  | `SPENDING_LIMIT_WALLET_MISMATCH`                       | The supplied spending limit does not belong to the supplied wallet.                                                    |
+| 324  | `SPENDING_LIMIT_TOTAL_BENEFICIARY_PERCENTAGE_EXCEEDED` | Total active beneficiary percentage limits for the same wallet and period cannot exceed 100%.                          |
+| 325  | `SPENDING_LIMIT_PER_TRANSACTION_EXCEEDED`              | Requested spend exceeds the configured per-transaction limit.                                                          |
+| 326  | `SPENDING_LIMIT_PERIOD_EXCEEDED`                       | Requested spend exceeds the configured spending limit for the active period.                                           |
+| 327  | `SPENDING_LIMIT_NO_ACTIVE_CUSTOM_PERIOD`               | No active custom period is configured for this spending limit.                                                         |
 | 329  | `SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED`                | Rollover is only supported for amount-based limits on fixed calendar periods (hourly, daily, weekly, monthly, yearly). |
 | 330  | `BALANCE_VISIBILITY_NOT_PERMITTED`                     | You do not have permission to view this wallet's balance.                                                              |
 | 331  | `OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN`            | Cannot change balance visibility for the wallet owner — the owner always has access.                                   |
