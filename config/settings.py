@@ -1,4 +1,3 @@
-import importlib.util
 from pathlib import Path
 
 
@@ -17,12 +16,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "wallets",
 ]
-
-if importlib.util.find_spec("rest_framework") is not None:
-    INSTALLED_APPS.append("rest_framework")
-
-if importlib.util.find_spec("drf_spectacular") is not None:
-    INSTALLED_APPS.append("drf_spectacular")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -72,15 +65,3 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 TEST_RUNNER = "config.test_runner.VerboseDiscoverRunner"
-
-if "drf_spectacular" in INSTALLED_APPS:
-    REST_FRAMEWORK = {
-        "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    }
-
-    SPECTACULAR_SETTINGS = {
-        "TITLE": "Wallet Test API",
-        "DESCRIPTION": "Development and testing endpoints for exercising the wallet package services.",
-        "VERSION": "0.1.0",
-        "SERVE_INCLUDE_SCHEMA": False,
-    }
