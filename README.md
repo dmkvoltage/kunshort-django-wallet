@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.0.0
+# kunshort-django-wallet 1.1.0
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,7 +7,7 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.0.0`
+- Version: `1.1.0`
 - Python import path: `wallets`
 
 ## What is included
@@ -100,7 +100,7 @@ The packaged library still includes `wallets.admin`, so consumers who add `walle
 To consume the package in another Django project:
 
 ```bash
-pip install kunshort-django-wallet==1.0.0
+pip install kunshort-django-wallet==1.1.0
 ```
 
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.
