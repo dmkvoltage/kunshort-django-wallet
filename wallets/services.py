@@ -177,14 +177,22 @@ class BaseWalletService:
             defaults={
                 "label": wallet.name,
                 "is_owner": True,
+                "can_view_balance": True,
             },
         )
+        update_fields = []
         if not owner_beneficiary.is_owner:
             owner_beneficiary.is_owner = True
+            update_fields.append("is_owner")
             if created is False and not owner_beneficiary.label:
                 owner_beneficiary.label = wallet.name
+                update_fields.append("label")
+        if not owner_beneficiary.can_view_balance:
+            owner_beneficiary.can_view_balance = True
+            update_fields.append("can_view_balance")
+        if update_fields:
             owner_beneficiary.full_clean()
-            owner_beneficiary.save(update_fields=["is_owner", "label"] if owner_beneficiary.label else ["is_owner"])
+            owner_beneficiary.save(update_fields=update_fields)
 
         return owner_beneficiary
 
