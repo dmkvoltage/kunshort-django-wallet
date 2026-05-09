@@ -90,13 +90,16 @@ class BaseWalletService:
 
         return normalized_percentage
 
+    CURRENCY_CODE_MAX_LENGTH = 20
+
     @staticmethod
     def normalize_currency_code(currency_code: str) -> str:
-        normalized_currency_code = currency_code.strip().upper()
-        currency_aliases = {"CFA": "XAF"}
-        normalized_currency_code = currency_aliases.get(normalized_currency_code, normalized_currency_code)
+        if currency_code is None:
+            raise InvalidWalletCurrencyError(code=WalletErrorCode.INVALID_CURRENCY_CODE)
 
-        if len(normalized_currency_code) != 3 or not normalized_currency_code.isalpha():
+        normalized_currency_code = str(currency_code).strip().upper()
+
+        if not normalized_currency_code or len(normalized_currency_code) > BaseWalletService.CURRENCY_CODE_MAX_LENGTH:
             raise InvalidWalletCurrencyError(code=WalletErrorCode.INVALID_CURRENCY_CODE)
 
         return normalized_currency_code

@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.1.1
+# kunshort-django-wallet 1.2.0
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,14 +7,24 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.1.1`
+- Version: `1.2.0`
 - Python import path: `wallets`
+
+## Changelog
+
+### 1.2.0
+
+- Currency codes are no longer limited to 3 alphabetic characters. Any non-empty string of up to 20 characters is now accepted (e.g. `XAF`, `USD`, `Credits`, `POINTS`, `TOKENS`).
+- Currency codes are still trimmed and normalized to upper case at save time. `"usd"` becomes `"USD"`, `"Credits"` becomes `"CREDITS"`.
+- The `INVALID_CURRENCY_CODE` (306) error message has been updated to: `"Currency code must be a non-empty string of at most 20 characters."`
+- The `Wallet.currency_code`, `WalletActivities.currency_code`, and `WalletBeneficiaryActivity.currency_code` columns have been widened from `max_length=3` to `max_length=20`. Migration `0015_widen_currency_code` performs the schema change — run `python manage.py migrate wallets` after upgrading.
+- The legacy `"CFA"` → `"XAF"` alias has been removed. If your application relied on it, pass `"XAF"` (or any code you prefer) explicitly.
 
 ## What is included
 
 - A `Wallet` model owned by `user_id`
 - Automatic owner-beneficiary creation for every wallet
-- Wallet creation accepts a 3-letter currency code
+- Wallet creation accepts any non-empty currency code up to 20 characters (e.g. `XAF`, `USD`, `Credits`, `POINTS`)
 - Support for multiple wallets per user
 - Dedicated wallet activity history via `WalletActivities`
 - Dedicated beneficiary activity history via `WalletBeneficiaryActivity`
@@ -35,7 +45,8 @@ Package identity:
 - `user_id` is stored as a normalized string identifier
 - A single user can create multiple wallets
 - Wallet names are unique per user
-- Wallet currency is stored as a normalized 3-letter code such as `XAF` or `USD`
+- Wallet currency is stored as a free-form, uppercased code (1–20 characters). Any non-empty string is accepted, so traditional ISO codes such as `XAF` or `USD` work as well as custom codes such as `Credits`, `POINTS`, or `TOKENS`
+- Currency codes are trimmed and uppercased on save (`"usd"` → `"USD"`, `"Credits"` → `"CREDITS"`); no other validation is applied
 - Wallets always start with a `0.00` balance at creation time
 - If `currency_code` is not supplied during creation, `XAF` is used
 - If `name` is omitted during creation, a generated name such as `PrimaryWallet001` is used
@@ -79,6 +90,7 @@ Create zero-balance wallets for existing users in the configured Django auth mod
 uv run python manage.py create_system_wallets
 uv run python manage.py create_system_wallets --wallet-name "Primary Wallet"
 uv run python manage.py create_system_wallets --wallet-name "Primary Wallet" --currency "XAF"
+uv run python manage.py create_system_wallets --wallet-name "Loyalty Wallet" --currency "Credits"
 ```
 
 The command reads users from Django's active auth user model via `get_user_model()` and only creates a wallet for users who do not already have one.
@@ -100,7 +112,7 @@ The packaged library still includes `wallets.admin`, so consumers who add `walle
 To consume the package in another Django project:
 
 ```bash
-pip install kunshort-django-wallet==1.1.1
+pip install kunshort-django-wallet==1.2.0
 ```
 
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.
@@ -128,7 +140,7 @@ from wallets.exceptions import serialize_wallet_error
 wallet = WalletService.create_wallet(
 	user_id=uuid4(),
 	name="Primary Wallet",  # optional
-	currency_code="XAF",   # optional, defaults to XAF
+	currency_code="XAF",   # optional; any non-empty string up to 20 chars (e.g. "USD", "Credits"). Defaults to XAF
 )
 
 wallets = WalletService.list_wallets_for_user(user_id=wallet.user_id)
@@ -346,7 +358,7 @@ The wallet module uses numeric codes so clients can localize messages independen
 | 303  | `INVALID_AMOUNT_NON_POSITIVE` | Amount must be greater than 0.                          |
 | 304  | `INVALID_PERCENTAGE_FORMAT`   | Percentage must be a valid decimal value.               |
 | 305  | `INVALID_PERCENTAGE_RANGE`    | Percentage must be greater than 0 and at most 100.      |
-| 306  | `INVALID_CURRENCY_CODE`       | Currency code must be a valid 3-letter alphabetic code. |
+| 306  | `INVALID_CURRENCY_CODE`       | Currency code must be a non-empty string of at most 20 characters. |
 
 ### Ownership and beneficiary errors
 

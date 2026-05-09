@@ -66,9 +66,9 @@ class WalletServiceTests(TestCase):
     def test_create_wallet_accepts_currency_code_and_marks_first_wallet_default(self):
         user_id = uuid4()
 
-        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", currency_code="cfa")
+        wallet = WalletService.create_wallet(user_id=user_id, name="Primary", currency_code="usd")
 
-        self.assertEqual(wallet.currency_code, "XAF")
+        self.assertEqual(wallet.currency_code, "USD")
         self.assertTrue(wallet.default_wallet)
         owner_beneficiary = WalletBeneficiary.objects.get(wallet=wallet, user_id=str(user_id))
         self.assertTrue(owner_beneficiary.is_owner)
@@ -80,9 +80,31 @@ class WalletServiceTests(TestCase):
             ).exists()
         )
 
-    def test_create_wallet_rejects_invalid_currency_code(self):
+    def test_create_wallet_accepts_arbitrary_currency_code(self):
+        user_id = uuid4()
+
+        wallet = WalletService.create_wallet(user_id=user_id, name="Loyalty", currency_code="Credits")
+
+        self.assertEqual(wallet.currency_code, "CREDITS")
+
+    def test_create_wallet_accepts_long_named_currency_code(self):
+        user_id = uuid4()
+
+        wallet = WalletService.create_wallet(user_id=user_id, name="Naira", currency_code="naira")
+
+        self.assertEqual(wallet.currency_code, "NAIRA")
+
+    def test_create_wallet_rejects_blank_currency_code(self):
         with self.assertRaises(InvalidWalletCurrencyError):
-            WalletService.create_wallet(user_id=uuid4(), name="Primary", currency_code="naira")
+            WalletService.create_wallet(user_id=uuid4(), name="Primary", currency_code="   ")
+
+    def test_create_wallet_rejects_overlong_currency_code(self):
+        with self.assertRaises(InvalidWalletCurrencyError):
+            WalletService.create_wallet(
+                user_id=uuid4(),
+                name="Primary",
+                currency_code="A" * 21,
+            )
 
     def test_first_wallet_is_default(self):
         user_id = uuid4()

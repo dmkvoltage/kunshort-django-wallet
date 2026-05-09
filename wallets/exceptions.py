@@ -50,7 +50,7 @@ WALLET_ERROR_MESSAGES = {
     WalletErrorCode.INVALID_AMOUNT_NON_POSITIVE: "Amount must be greater than 0.",
     WalletErrorCode.INVALID_PERCENTAGE_FORMAT: "Percentage must be a valid decimal value.",
     WalletErrorCode.INVALID_PERCENTAGE_RANGE: "Percentage must be greater than 0 and at most 100.",
-    WalletErrorCode.INVALID_CURRENCY_CODE: "Currency code must be a valid 3-letter alphabetic code.",
+    WalletErrorCode.INVALID_CURRENCY_CODE: "Currency code must be a non-empty string of at most 20 characters.",
     WalletErrorCode.WALLET_OWNERSHIP_MISMATCH: "Wallet does not belong to the supplied user.",
     WalletErrorCode.BENEFICIARY_NOT_FOUND: "User is not attached to the supplied wallet.",
     WalletErrorCode.TRANSFER_DESTINATION_WALLET_MISMATCH: "Destination wallet does not belong to the beneficiary user.",
@@ -143,7 +143,7 @@ class InvalidWalletAmountError(WalletError):
 
 
 class InvalidWalletCurrencyError(WalletError):
-    """Raised when a wallet currency code is not a valid 3-letter code."""
+    """Raised when a wallet currency code is empty or longer than the allowed length."""
 
     default_code = WalletErrorCode.INVALID_CURRENCY_CODE
     default_message = WALLET_ERROR_MESSAGES[default_code]

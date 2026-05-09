@@ -43,7 +43,7 @@ user_id = uuid4()
 wallet = WalletService.create_wallet(
     user_id=user_id,
     name="Primary Wallet",
-    currency_code="XAF",
+    currency_code="XAF",  # any non-empty string up to 20 chars (e.g. "USD", "Credits"). Defaults to "XAF"
 )
 
 WalletTopUpService.top_up_wallet(

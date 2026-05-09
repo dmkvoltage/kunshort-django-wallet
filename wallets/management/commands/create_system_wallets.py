@@ -15,8 +15,11 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--currency",
-            default="CFA",
-            help="3-letter currency code to use for created wallets. Defaults to 'CFA'.",
+            default="XAF",
+            help=(
+                "Currency code to use for created wallets (any non-empty string up "
+                "to 20 characters, e.g. 'XAF', 'USD', 'Credits'). Defaults to 'XAF'."
+            ),
         )
 
     def handle(self, *args, **options):
