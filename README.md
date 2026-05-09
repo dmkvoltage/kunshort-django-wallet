@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.2.0
+# kunshort-django-wallet 1.3.0
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,10 +7,21 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.2.0`
+- Version: `1.3.0`
 - Python import path: `wallets`
 
 ## Changelog
+
+### 1.3.0
+
+- New **two-step top-up lifecycle** for top-ups driven by external payment systems (mobile money, card, etc.):
+  - `WalletTopUpService.initiate_top_up(user_id, wallet_id, amount, external_transaction_id)` reserves a pending `WalletTransaction` (status `INITIATED`) without touching the wallet balance.
+  - `WalletTopUpService.complete_top_up(external_transaction_id, status)` finalizes it. Passing `"completed"` applies the credit and locks the matching `INITIATED` transaction; passing `"failed"` or `"cancelled"` records the terminal status without changing the balance.
+- New `WalletTransactionStatus` table records every status transition for a `WalletTransaction` (`INITIATED`, `COMPLETED`, `FAILED`, `CANCELLED`) with timestamps. Access the most recent status via `transaction.latest_status` or query `transaction.statuses.all()`.
+- `WalletTransaction` now stores `external_transaction_id` (nullable, unique-when-set) for cross-referencing the originating external payment.
+- `WalletTransaction.balance_before` / `balance_after` are now nullable. They remain `NULL` while a transaction is `INITIATED`; they are populated once the transaction reaches `COMPLETED`. Direct services (`top_up_wallet`, `debit_wallet`, transfers) still populate them immediately because those operations are completed synchronously.
+- New error codes (332–336) and exceptions for the lifecycle: `WalletTransactionNotFoundError`, `WalletTransactionAlreadyFinalizedError`, `WalletTransactionDuplicateExternalIdError`, `WalletTransactionExternalIdRequiredError`, `WalletTransactionInvalidStatusError`.
+- Run `python manage.py migrate wallets` to apply migration `0016_wallettransactionstatus_and_more`.
 
 ### 1.2.0
 
@@ -31,7 +42,7 @@ Package identity:
 - Stored spending usage rows via `WalletSpending`
 - Custom rolling-window durations via `CustomPeriod`
 - A `WalletService` class for wallet creation and retrieval
-- A `WalletTopUpService` class for atomic wallet funding
+- A `WalletTopUpService` class for atomic wallet funding (direct credit via `top_up_wallet`, plus a two-step `initiate_top_up` / `complete_top_up` flow for external payment systems)
 - A `WalletDebitService` class for atomic wallet withdrawals
 - A `WalletTransactionHistoryService` class for reading transaction history
 - A `WalletBeneficiaryService` class for managing wallet beneficiaries
@@ -59,7 +70,8 @@ Package identity:
 
 - `Wallet`: the owned balance container. Includes `default_wallet`, `currency_code`, and `balance`.
 - `WalletBeneficiary`: wallet-scoped participants. The owner is automatically stored here as `is_owner=True`.
-- `WalletTransaction`: immutable wallet ledger rows. Uses a single `user_id` plus `transaction_by` to distinguish owner vs beneficiary actions.
+- `WalletTransaction`: wallet ledger rows. Uses a single `user_id` plus `transaction_by` to distinguish owner vs beneficiary actions. Carries the optional `external_transaction_id` for transactions driven by external payment systems. `balance_before` / `balance_after` are populated once the transaction reaches the `COMPLETED` status; they are `NULL` while it is still `INITIATED`.
+- `WalletTransactionStatus`: append-only history of status transitions for a `WalletTransaction` (`INITIATED`, `COMPLETED`, `FAILED`, `CANCELLED`). The latest row is the current state.
 - `WalletActivities`: wallet-wide audit log for create, top-up, debit, transfer, and spending-limit events.
 - `WalletBeneficiaryActivity`: beneficiary-focused audit log for beneficiary add/remove, transfer-out, and beneficiary spending-limit events.
 - `WalletSpendingLimit`: wallet-level or beneficiary-level spending rules.
@@ -278,6 +290,48 @@ The following models are registered in admin:
 - The top-up service validates that the wallet belongs to the supplied user
 - The top-up amount must be a valid decimal value greater than `0`
 - The balance update runs inside a database transaction and locks the wallet row during the update
+
+## Two-step top-up lifecycle (external payment systems)
+
+When the actual collection happens through an external payment provider (mobile money, card processor, etc.), use the two-step flow so the wallet is only credited after the external system confirms a successful charge.
+
+```python
+from wallets.services import WalletTopUpService
+
+# 1. Reserve a pending transaction tied to the external payment id.
+#    No balance change yet — a WalletTransaction is created with status INITIATED.
+pending_txn = WalletTopUpService.initiate_top_up(
+    user_id=wallet.user_id,
+    wallet_id=wallet.id,
+    amount="1500.00",
+    external_transaction_id="momo-collection-7f3c1e",
+)
+print(pending_txn.latest_status.status)  # 'initiated'
+
+# 2a. External system confirms success → credit the wallet.
+completed_txn = WalletTopUpService.complete_top_up(
+    external_transaction_id="momo-collection-7f3c1e",
+    status="completed",
+)
+# completed_txn.balance_before / balance_after are now populated
+# wallet.balance has increased by the original amount.
+
+# 2b. Or external system reports a failure / cancellation.
+WalletTopUpService.complete_top_up(
+    external_transaction_id="momo-collection-other",
+    status="failed",   # or "cancelled"
+)
+# The transaction is finalized with a FAILED/CANCELLED status row.
+# Wallet balance is not changed.
+```
+
+Lifecycle rules:
+
+- `external_transaction_id` is required for both calls and must be unique across all wallet transactions.
+- `complete_top_up` accepts only `"completed"`, `"failed"`, or `"cancelled"`. Any other value raises `WalletTransactionInvalidStatusError` (336).
+- A transaction can only be finalized once. A second `complete_top_up` call on the same `external_transaction_id` raises `WalletTransactionAlreadyFinalizedError` (333).
+- Calling `initiate_top_up` with an `external_transaction_id` that already exists raises `WalletTransactionDuplicateExternalIdError` (334).
+- The full status history of a transaction is available via `transaction.statuses.all()` (ordered most-recent first); the latest status is also exposed as `transaction.latest_status`.
 
 ## Withdrawal and history
 

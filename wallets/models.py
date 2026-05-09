@@ -150,7 +150,21 @@ class Wallet(models.Model):
 
 
 class WalletTransaction(models.Model):
-    """Immutable ledger entry for a wallet balance change."""
+    """Wallet ledger entry. Carries the lifecycle of a balance change.
+
+    A transaction is created in the ``INITIATED`` state when an external
+    payment flow asks the wallet to reserve the operation. Once the external
+    system confirms the result, the consumer calls
+    ``WalletTopUpService.complete_top_up`` (for top-ups) which transitions the
+    transaction to ``COMPLETED`` and applies the balance change. Direct
+    services such as ``debit_wallet``, ``transfer_to_beneficiary``, and the
+    legacy ``top_up_wallet`` create transactions that are already
+    ``COMPLETED`` because the balance change is applied synchronously.
+
+    ``balance_before`` and ``balance_after`` are populated only once the
+    transaction reaches ``COMPLETED`` — they remain ``NULL`` while a
+    transaction is still ``INITIATED``.
+    """
 
     class TransactionType(models.TextChoices):
         TOP_UP = "top_up", "Top up"
@@ -176,17 +190,61 @@ class WalletTransaction(models.Model):
     )
     transaction_type = models.CharField(max_length=20, choices=TransactionType.choices)
     amount = models.DecimalField(max_digits=18, decimal_places=2)
-    balance_before = models.DecimalField(max_digits=18, decimal_places=2)
-    balance_after = models.DecimalField(max_digits=18, decimal_places=2)
+    balance_before = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
+    balance_after = models.DecimalField(max_digits=18, decimal_places=2, null=True, blank=True)
+    external_transaction_id = models.CharField(
+        max_length=255, blank=True, null=True, db_index=True,
+        help_text="Identifier supplied by the external system that drove this transaction.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     objects = WalletTransactionQuerySet.as_manager()
 
     class Meta:
         ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=("external_transaction_id",),
+                condition=models.Q(external_transaction_id__isnull=False),
+                name="wallet_transaction_unique_external_id",
+            ),
+        ]
+
+    @property
+    def latest_status(self) -> "WalletTransactionStatus | None":
+        return self.statuses.order_by("-created_at").first()
 
     def __str__(self) -> str:
         return f"{self.transaction_type} {self.amount}"
+
+
+class WalletTransactionStatus(models.Model):
+    """Status transitions recorded against a ``WalletTransaction``.
+
+    A new row is appended for every status change so the full lifecycle of a
+    transaction is auditable. The most recent row reflects the current state.
+    """
+
+    class StatusChoices(models.TextChoices):
+        INITIATED = "initiated", "Initiated"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
+        CANCELLED = "cancelled", "Cancelled"
+
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    transaction = models.ForeignKey(
+        WalletTransaction,
+        on_delete=models.CASCADE,
+        related_name="statuses",
+    )
+    status = models.CharField(max_length=20, choices=StatusChoices.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+
+    def __str__(self) -> str:
+        return f"{self.transaction_id} {self.status}"
 
 
 class WalletBeneficiary(models.Model):

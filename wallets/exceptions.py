@@ -42,6 +42,11 @@ class WalletErrorCode:
     SPENDING_LIMIT_ROLLOVER_NOT_SUPPORTED = 329
     BALANCE_VISIBILITY_NOT_PERMITTED = 330
     OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN = 331
+    WALLET_TRANSACTION_NOT_FOUND = 332
+    WALLET_TRANSACTION_ALREADY_FINALIZED = 333
+    WALLET_TRANSACTION_DUPLICATE_EXTERNAL_ID = 334
+    WALLET_TRANSACTION_EXTERNAL_ID_REQUIRED = 335
+    WALLET_TRANSACTION_INVALID_STATUS = 336
 
 
 WALLET_ERROR_MESSAGES = {
@@ -89,6 +94,19 @@ WALLET_ERROR_MESSAGES = {
     ),
     WalletErrorCode.OWNER_BALANCE_VISIBILITY_CHANGE_FORBIDDEN: (
         "Cannot change balance visibility for the wallet owner — the owner always has access."
+    ),
+    WalletErrorCode.WALLET_TRANSACTION_NOT_FOUND: "Wallet transaction not found for the supplied external id.",
+    WalletErrorCode.WALLET_TRANSACTION_ALREADY_FINALIZED: (
+        "Wallet transaction is already finalized — no further status changes are allowed."
+    ),
+    WalletErrorCode.WALLET_TRANSACTION_DUPLICATE_EXTERNAL_ID: (
+        "A wallet transaction with this external id already exists."
+    ),
+    WalletErrorCode.WALLET_TRANSACTION_EXTERNAL_ID_REQUIRED: (
+        "External transaction id is required to initiate or complete a wallet transaction."
+    ),
+    WalletErrorCode.WALLET_TRANSACTION_INVALID_STATUS: (
+        "Status must be one of `completed`, `failed`, or `cancelled`."
     ),
 }
 
@@ -209,4 +227,39 @@ class WalletBalanceVisibilityError(WalletError):
     """Raised for balance-visibility permission and configuration errors."""
 
     default_code = WalletErrorCode.BALANCE_VISIBILITY_NOT_PERMITTED
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletTransactionNotFoundError(WalletError):
+    """Raised when no wallet transaction matches the supplied external id."""
+
+    default_code = WalletErrorCode.WALLET_TRANSACTION_NOT_FOUND
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletTransactionAlreadyFinalizedError(WalletError):
+    """Raised when a wallet transaction has already reached a terminal status."""
+
+    default_code = WalletErrorCode.WALLET_TRANSACTION_ALREADY_FINALIZED
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletTransactionDuplicateExternalIdError(WalletError):
+    """Raised when initiating a transaction with a duplicate external id."""
+
+    default_code = WalletErrorCode.WALLET_TRANSACTION_DUPLICATE_EXTERNAL_ID
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletTransactionExternalIdRequiredError(WalletError):
+    """Raised when the caller omits an external id for the lifecycle flow."""
+
+    default_code = WalletErrorCode.WALLET_TRANSACTION_EXTERNAL_ID_REQUIRED
+    default_message = WALLET_ERROR_MESSAGES[default_code]
+
+
+class WalletTransactionInvalidStatusError(WalletError):
+    """Raised when an invalid completion status is supplied."""
+
+    default_code = WalletErrorCode.WALLET_TRANSACTION_INVALID_STATUS
     default_message = WALLET_ERROR_MESSAGES[default_code]

@@ -25,6 +25,11 @@ from .exceptions import (
     WalletBeneficiaryNotFoundError,
     WalletOwnershipError,
     WalletSpendingLimitExceededError,
+    WalletTransactionAlreadyFinalizedError,
+    WalletTransactionDuplicateExternalIdError,
+    WalletTransactionExternalIdRequiredError,
+    WalletTransactionInvalidStatusError,
+    WalletTransactionNotFoundError,
 )
 from .models import (
     CustomPeriod,
@@ -41,6 +46,7 @@ from .models import (
     WalletSpendingLimitQuerySet,
     WalletTransaction,
     WalletTransactionQuerySet,
+    WalletTransactionStatus,
 )
 
 
@@ -207,10 +213,12 @@ class BaseWalletService:
         transaction_by: str,
         transaction_type: str,
         amount: Decimal,
-        balance_before: Decimal,
-        balance_after: Decimal,
+        balance_before: Decimal | None,
+        balance_after: Decimal | None,
         reference: UUID | None = None,
         related_wallet: Wallet | None = None,
+        external_transaction_id: str | None = None,
+        initial_status: str = WalletTransactionStatus.StatusChoices.COMPLETED,
     ) -> WalletTransaction:
         wallet_transaction = WalletTransaction(
             reference=reference or uuid4(),
@@ -222,10 +230,25 @@ class BaseWalletService:
             amount=amount,
             balance_before=balance_before,
             balance_after=balance_after,
+            external_transaction_id=external_transaction_id or None,
         )
         wallet_transaction.full_clean()
         wallet_transaction.save()
+        BaseWalletService.create_transaction_status_record(
+            transaction=wallet_transaction, status=initial_status,
+        )
         return wallet_transaction
+
+    @staticmethod
+    def create_transaction_status_record(
+        *,
+        transaction: WalletTransaction,
+        status: str,
+    ) -> WalletTransactionStatus:
+        record = WalletTransactionStatus(transaction=transaction, status=status)
+        record.full_clean()
+        record.save()
+        return record
 
     @staticmethod
     def create_wallet_activity_record(
@@ -362,7 +385,33 @@ class WalletService(BaseWalletService):
 
 
 class WalletTopUpService(BaseWalletService):
-    """Operations that add funds to a wallet."""
+    """Operations that add funds to a wallet.
+
+    Two flows are supported:
+
+    1. **Direct credit** — :meth:`top_up_wallet` applies the credit immediately
+       and writes a ``COMPLETED`` ledger row.
+    2. **External lifecycle** — :meth:`initiate_top_up` reserves a pending
+       ``INITIATED`` ledger row tied to an ``external_transaction_id`` supplied
+       by the caller. The external system later reports the result and
+       :meth:`complete_top_up` either applies the credit (status ``completed``)
+       or marks the row as ``failed`` / ``cancelled``.
+    """
+
+    _TERMINAL_STATUSES = frozenset(
+        {
+            WalletTransactionStatus.StatusChoices.COMPLETED,
+            WalletTransactionStatus.StatusChoices.FAILED,
+            WalletTransactionStatus.StatusChoices.CANCELLED,
+        }
+    )
+    _ALLOWED_COMPLETION_STATUSES = frozenset(
+        {
+            WalletTransactionStatus.StatusChoices.COMPLETED,
+            WalletTransactionStatus.StatusChoices.FAILED,
+            WalletTransactionStatus.StatusChoices.CANCELLED,
+        }
+    )
 
     @staticmethod
     @transaction.atomic
@@ -394,6 +443,131 @@ class WalletTopUpService(BaseWalletService):
             transaction_record=transaction_record,
         )
         return wallet
+
+    @staticmethod
+    @transaction.atomic
+    def initiate_top_up(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+        amount: Decimal | int | str,
+        external_transaction_id: str,
+    ) -> WalletTransaction:
+        """Reserve a pending top-up tied to an external transaction id.
+
+        Creates a ``WalletTransaction`` (type ``TOP_UP``) with
+        ``balance_before`` and ``balance_after`` left ``NULL`` and an
+        ``INITIATED`` status entry. The wallet balance is **not** changed
+        until :meth:`complete_top_up` is called with a ``completed`` status.
+        """
+        if not external_transaction_id:
+            raise WalletTransactionExternalIdRequiredError(
+                code=WalletErrorCode.WALLET_TRANSACTION_EXTERNAL_ID_REQUIRED
+            )
+
+        normalized_amount = WalletTopUpService.normalize_amount(amount, allow_zero=False)
+        wallet = WalletTopUpService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id)
+
+        if WalletTransaction.objects.filter(external_transaction_id=external_transaction_id).exists():
+            raise WalletTransactionDuplicateExternalIdError(
+                code=WalletErrorCode.WALLET_TRANSACTION_DUPLICATE_EXTERNAL_ID
+            )
+
+        transaction_record = WalletTopUpService.create_transaction_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            transaction_type=WalletTransaction.TransactionType.TOP_UP,
+            amount=normalized_amount,
+            balance_before=None,
+            balance_after=None,
+            external_transaction_id=external_transaction_id,
+            initial_status=WalletTransactionStatus.StatusChoices.INITIATED,
+        )
+        return transaction_record
+
+    @staticmethod
+    @transaction.atomic
+    def complete_top_up(
+        *,
+        external_transaction_id: str,
+        status: str,
+    ) -> WalletTransaction:
+        """Finalize a previously initiated top-up.
+
+        Looks up the pending transaction by ``external_transaction_id`` and:
+
+        - If ``status == "completed"``: locks the wallet, applies the credit,
+          fills in ``balance_before`` / ``balance_after``, writes a
+          ``COMPLETED`` status row, and emits a wallet-activity entry.
+        - If ``status`` is ``"failed"`` or ``"cancelled"``: simply records the
+          new status; the wallet balance is left untouched.
+
+        Raises :class:`WalletTransactionAlreadyFinalizedError` if the latest
+        status of the transaction is already terminal (completed/failed/cancelled).
+        """
+        if not external_transaction_id:
+            raise WalletTransactionExternalIdRequiredError(
+                code=WalletErrorCode.WALLET_TRANSACTION_EXTERNAL_ID_REQUIRED
+            )
+        if status not in WalletTopUpService._ALLOWED_COMPLETION_STATUSES:
+            raise WalletTransactionInvalidStatusError(
+                code=WalletErrorCode.WALLET_TRANSACTION_INVALID_STATUS
+            )
+
+        try:
+            transaction_record = (
+                WalletTransaction.objects.select_for_update()
+                .filter(
+                    external_transaction_id=external_transaction_id,
+                    transaction_type=WalletTransaction.TransactionType.TOP_UP,
+                )
+                .get()
+            )
+        except WalletTransaction.DoesNotExist as error:
+            raise WalletTransactionNotFoundError(
+                code=WalletErrorCode.WALLET_TRANSACTION_NOT_FOUND
+            ) from error
+
+        latest = transaction_record.latest_status
+        if latest is not None and latest.status in WalletTopUpService._TERMINAL_STATUSES:
+            raise WalletTransactionAlreadyFinalizedError(
+                code=WalletErrorCode.WALLET_TRANSACTION_ALREADY_FINALIZED
+            )
+
+        if status != WalletTransactionStatus.StatusChoices.COMPLETED:
+            WalletTopUpService.create_transaction_status_record(
+                transaction=transaction_record, status=status,
+            )
+            return transaction_record
+
+        wallet = Wallet.objects.select_for_update().get(pk=transaction_record.wallet_id)
+        balance_before = wallet.balance
+        balance_after = balance_before + transaction_record.amount
+
+        wallet.balance = balance_after
+        wallet.full_clean()
+        wallet.save(update_fields=["balance", "updated_at"])
+
+        transaction_record.balance_before = balance_before
+        transaction_record.balance_after = balance_after
+        transaction_record.full_clean()
+        transaction_record.save(update_fields=["balance_before", "balance_after"])
+
+        WalletTopUpService.create_transaction_status_record(
+            transaction=transaction_record,
+            status=WalletTransactionStatus.StatusChoices.COMPLETED,
+        )
+        WalletTopUpService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=wallet.user_id,
+            transaction_by=WalletTransaction.TransactionBy.OWNER,
+            action_type=WalletActivities.ActionType.TOP_UP,
+            amount=transaction_record.amount,
+            reference=transaction_record.reference,
+            transaction_record=transaction_record,
+        )
+        return transaction_record
 
 
 class WalletDebitService(BaseWalletService):

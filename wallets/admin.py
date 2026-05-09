@@ -9,6 +9,7 @@ from .models import (
     WalletSpending,
     WalletSpendingLimit,
     WalletTransaction,
+    WalletTransactionStatus,
 )
 
 
@@ -42,10 +43,19 @@ class WalletTransactionAdmin(admin.ModelAdmin):
         "amount",
         "balance_before",
         "balance_after",
+        "external_transaction_id",
         "created_at",
     )
     list_filter = ("transaction_by", "transaction_type", "created_at")
-    search_fields = ("id", "wallet__id", "user_id")
+    search_fields = ("id", "wallet__id", "user_id", "external_transaction_id")
+    ordering = ("-created_at",)
+
+
+@admin.register(WalletTransactionStatus)
+class WalletTransactionStatusAdmin(admin.ModelAdmin):
+    list_display = ("id", "transaction", "status", "created_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("id", "transaction__id", "transaction__external_transaction_id")
     ordering = ("-created_at",)
 
 
