@@ -417,6 +417,36 @@ class WalletBeneficiaryServiceTests(TestCase):
         self.assertTrue(any(item.is_owner for item in beneficiaries))
         self.assertIn(beneficiary.id, {item.id for item in beneficiaries})
 
+    def test_list_wallets_for_beneficiary_returns_wallets_where_user_is_non_owner_beneficiary(self):
+        beneficiary_user_id = uuid4()
+        first_owner_id = uuid4()
+        second_owner_id = uuid4()
+
+        first_wallet = WalletService.create_wallet(user_id=first_owner_id, name="Household")
+        second_wallet = WalletService.create_wallet(user_id=second_owner_id, name="School")
+        own_wallet = WalletService.create_wallet(user_id=beneficiary_user_id, name="Personal")
+
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=first_owner_id,
+            wallet_id=first_wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+        )
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=second_owner_id,
+            wallet_id=second_wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+        )
+
+        wallets = list(WalletBeneficiaryService.list_wallets_for_beneficiary(user_id=beneficiary_user_id))
+
+        self.assertEqual({wallet.id for wallet in wallets}, {first_wallet.id, second_wallet.id})
+        self.assertNotIn(own_wallet.id, {wallet.id for wallet in wallets})
+
+    def test_list_wallets_for_beneficiary_returns_empty_when_user_is_not_attached(self):
+        wallets = WalletBeneficiaryService.list_wallets_for_beneficiary(user_id=uuid4())
+
+        self.assertFalse(wallets.exists())
+
     def test_remove_beneficiary_does_not_allow_owner_removal(self):
         owner_id = uuid4()
         wallet = WalletService.create_wallet(user_id=owner_id, name="Primary")

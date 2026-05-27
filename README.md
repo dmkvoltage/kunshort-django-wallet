@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.3.0
+# kunshort-django-wallet 1.4.0
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,10 +7,16 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.3.0`
+- Version: `1.4.0`
 - Python import path: `wallets`
 
 ## Changelog
+
+### 1.4.0
+
+- Added `WalletBeneficiaryService.list_wallets_for_beneficiary(...)` to list wallets where a user is attached as a non-owner beneficiary.
+- Added service tests covering beneficiary wallet discovery.
+- Updated the package documentation and consumer guide for the new beneficiary wallet-listing capability.
 
 ### 1.3.0
 
@@ -468,6 +474,7 @@ The wallet module uses numeric codes so clients can localize messages independen
 - `WalletBeneficiaryService.set_balance_visibility(...)`: grants or revokes the ability for a beneficiary to read the wallet balance.
 - `WalletBeneficiaryService.get_wallet_balance_for_beneficiary(...)`: returns the wallet object for a beneficiary that has balance visibility.
 - `WalletBeneficiaryService.list_wallet_beneficiaries(...)`: lists all beneficiaries, including the owner-beneficiary.
+- `WalletBeneficiaryService.list_wallets_for_beneficiary(...)`: lists wallets where a user is attached as a non-owner beneficiary.
 - `WalletBeneficiaryHistoryService.list_beneficiary_history(...)`: returns beneficiary activity history.
 - `WalletBeneficiaryHistoryService.list_beneficiary_spending_history(...)`: returns beneficiary spending-related activity only.
 - `WalletSpendingLimitService.set_wallet_spending_limit(...)`: creates or updates a wallet-level spending rule.

@@ -84,6 +84,12 @@ def send_wallet_gift(*, owner_user_id, source_wallet_id, beneficiary_user_id, be
         destination_wallet_id=beneficiary_wallet_id,
         amount=amount,
     )
+
+
+def list_shared_wallets(*, beneficiary_user_id):
+    return WalletBeneficiaryService.list_wallets_for_beneficiary(
+        user_id=beneficiary_user_id,
+    )
 ```
 
 ## Notes

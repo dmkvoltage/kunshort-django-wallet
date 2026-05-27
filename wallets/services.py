@@ -756,6 +756,14 @@ class WalletBeneficiaryService(BaseWalletService):
         return WalletBeneficiary.objects.for_wallet(wallet.id)
 
     @staticmethod
+    def list_wallets_for_beneficiary(*, user_id: UserIdentifier) -> WalletQuerySet:
+        normalized_user_id = WalletBeneficiaryService.normalize_user_id(user_id)
+        return Wallet.objects.filter(
+            beneficiaries__user_id=normalized_user_id,
+            beneficiaries__is_owner=False,
+        ).distinct()
+
+    @staticmethod
     @transaction.atomic
     def set_balance_visibility(
         *,
