@@ -262,6 +262,87 @@ class WalletDebitServiceTests(TestCase):
         with self.assertRaises(InvalidWalletAmountError):
             WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="0.00")
 
+    def test_debit_wallet_for_beneficiary_updates_balance_and_records_beneficiary_history(self):
+        owner_id = uuid4()
+        beneficiary_user_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Shared", balance="50.00")
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+        )
+        WalletSpendingLimitService.set_beneficiary_spending_limit(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+            period=WalletSpendingLimit.Period.DAILY,
+            amount="100.00",
+        )
+
+        updated_wallet = WalletDebitService.debit_wallet_for_participant(
+            user_id=beneficiary_user_id,
+            wallet_id=wallet.id,
+            amount="12.75",
+        )
+
+        self.assertEqual(updated_wallet.balance, Decimal("37.25"))
+        transaction_record = WalletTransaction.objects.get(wallet=wallet, transaction_type=WalletTransaction.TransactionType.WITHDRAWAL)
+        self.assertEqual(transaction_record.user_id, str(beneficiary_user_id))
+        self.assertEqual(transaction_record.transaction_by, WalletTransaction.TransactionBy.BENEFICIARY)
+        self.assertTrue(
+            WalletBeneficiaryActivity.objects.filter(
+                wallet=wallet,
+                user_id=str(beneficiary_user_id),
+                action_type=WalletBeneficiaryActivity.ActionType.WITHDRAWAL,
+            ).exists()
+        )
+        self.assertTrue(
+            WalletSpending.objects.filter(
+                wallet=wallet,
+                transaction=transaction_record,
+                user_id=str(beneficiary_user_id),
+                transaction_by=WalletTransaction.TransactionBy.BENEFICIARY,
+            ).exists()
+        )
+
+    def test_debit_wallet_for_participant_rejects_user_not_attached_to_wallet(self):
+        owner_id = uuid4()
+        outsider_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Primary", balance="10.00")
+
+        with self.assertRaises(WalletBeneficiaryNotFoundError):
+            WalletDebitService.debit_wallet_for_participant(
+                user_id=outsider_id,
+                wallet_id=wallet.id,
+                amount="5.00",
+            )
+
+    def test_debit_wallet_for_beneficiary_enforces_beneficiary_spending_limit(self):
+        owner_id = uuid4()
+        beneficiary_user_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Shared", balance="100.00")
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+        )
+        WalletSpendingLimitService.set_beneficiary_spending_limit(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+            limit_type=WalletSpendingLimit.LimitType.AMOUNT,
+            period=WalletSpendingLimit.Period.PER_TRANSACTION,
+            amount="10.00",
+        )
+
+        with self.assertRaises(WalletSpendingLimitExceededError):
+            WalletDebitService.debit_wallet_for_participant(
+                user_id=beneficiary_user_id,
+                wallet_id=wallet.id,
+                amount="15.00",
+            )
+
 
 class WalletTransactionHistoryServiceTests(TestCase):
     def test_list_wallet_history_returns_wallet_transactions(self):

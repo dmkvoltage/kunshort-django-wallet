@@ -90,7 +90,12 @@ class WalletBeneficiaryActivityQuerySet(models.QuerySet):
         return self.filter(beneficiary_id=beneficiary_id)
 
     def spendings(self) -> "WalletBeneficiaryActivityQuerySet":
-        return self.filter(action_type=WalletBeneficiaryActivity.ActionType.TRANSFER_OUT)
+        return self.filter(
+            action_type__in=(
+                WalletBeneficiaryActivity.ActionType.TRANSFER_OUT,
+                WalletBeneficiaryActivity.ActionType.WITHDRAWAL,
+            )
+        )
 
 
 class WalletSpendingLimitQuerySet(models.QuerySet):
@@ -293,6 +298,7 @@ class WalletBeneficiaryActivity(models.Model):
     class ActionType(models.TextChoices):
         BENEFICIARY_ADDED = "added", "Beneficiary added"
         BENEFICIARY_REMOVED = "removed", "Beneficiary removed"
+        WITHDRAWAL = "withdrawal", "Withdrawal"
         TRANSFER_OUT = "transfer_out", "Transfer out"
         SPENDING_LIMIT_SET = "spending_limit_set", "Spending limit set"
         SPENDING_LIMIT_UPDATED = "spending_limit_updated", "Spending limit updated"

@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.4.0
+# kunshort-django-wallet 1.4.1
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,10 +7,17 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.4.0`
+- Version: `1.4.1`
 - Python import path: `wallets`
 
 ## Changelog
+
+### 1.4.1
+
+- Added `WalletDebitService.debit_wallet_for_participant(...)` for atomic debits by either the wallet owner or an attached beneficiary.
+- Beneficiary debits now lock the wallet row, re-check balance under lock, and enforce beneficiary spending limits before deducting.
+- Beneficiary withdrawal actions are now recorded in `WalletBeneficiaryActivity` and included in beneficiary spending history.
+- Added service tests covering beneficiary debit success, outsider rejection, and beneficiary spending-limit enforcement.
 
 ### 1.4.0
 
@@ -130,7 +137,7 @@ The packaged library still includes `wallets.admin`, so consumers who add `walle
 To consume the package in another Django project:
 
 ```bash
-pip install kunshort-django-wallet==1.2.0
+pip install kunshort-django-wallet==1.4.1
 ```
 
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.

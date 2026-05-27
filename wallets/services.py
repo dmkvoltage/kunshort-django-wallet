@@ -616,6 +616,84 @@ class WalletDebitService(BaseWalletService):
         )
         return wallet
 
+    @staticmethod
+    @transaction.atomic
+    def debit_wallet_for_participant(
+        *,
+        user_id: UserIdentifier,
+        wallet_id: UUID | str,
+        amount: Decimal | int | str,
+    ) -> Wallet:
+        normalized_amount = WalletDebitService.normalize_amount(amount, allow_zero=False)
+        normalized_actor_user_id = WalletDebitService.normalize_user_id(user_id)
+        wallet = Wallet.objects.select_for_update().get(pk=wallet_id)
+        actor = WalletDebitService.get_wallet_participant_for_wallet(
+            wallet=wallet,
+            participant_user_id=normalized_actor_user_id,
+            for_update=True,
+        )
+        balance_before = wallet.balance
+
+        if normalized_amount > balance_before:
+            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT)
+
+        actor_transaction_by = WalletDebitService.get_transaction_by(
+            wallet=wallet,
+            actor_user_id=normalized_actor_user_id,
+        )
+        beneficiary_scope = actor if actor_transaction_by == WalletTransaction.TransactionBy.BENEFICIARY else None
+        WalletSpendingLimitService.validate_spending_limits(
+            wallet=wallet,
+            amount=normalized_amount,
+            beneficiary=beneficiary_scope,
+        )
+
+        balance_after = balance_before - normalized_amount
+        wallet.balance = balance_after
+        wallet.full_clean()
+        wallet.save(update_fields=["balance", "updated_at"])
+        transaction_record = WalletDebitService.create_transaction_record(
+            wallet=wallet,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
+            transaction_type=WalletTransaction.TransactionType.WITHDRAWAL,
+            amount=normalized_amount,
+            balance_before=balance_before,
+            balance_after=balance_after,
+        )
+        WalletDebitService.create_wallet_activity_record(
+            wallet=wallet,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
+            action_type=WalletActivities.ActionType.WITHDRAWAL,
+            amount=normalized_amount,
+            reference=transaction_record.reference,
+            transaction_record=transaction_record,
+        )
+        if beneficiary_scope is not None:
+            WalletDebitService.create_wallet_beneficiary_activity_record(
+                wallet=wallet,
+                beneficiary=beneficiary_scope,
+                user_id=normalized_actor_user_id,
+                action_type=WalletBeneficiaryActivity.ActionType.WITHDRAWAL,
+                amount=normalized_amount,
+                reference=transaction_record.reference,
+                metadata={
+                    "actor_user_id": normalized_actor_user_id,
+                    "actor_transaction_by": actor_transaction_by,
+                    "transaction_id": str(transaction_record.id),
+                },
+            )
+        WalletSpendingLimitService.record_spending_usage(
+            wallet=wallet,
+            user_id=normalized_actor_user_id,
+            transaction_by=actor_transaction_by,
+            amount=normalized_amount,
+            transaction_record=transaction_record,
+            beneficiary=beneficiary_scope,
+        )
+        return wallet
+
 
 class WalletTransactionHistoryService(BaseWalletService):
     """Read wallet transaction history."""
