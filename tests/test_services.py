@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from wallets.exceptions import (
@@ -247,6 +247,38 @@ class WalletDebitServiceTests(TestCase):
         with self.assertRaises(InsufficientWalletBalanceError):
             WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="15.00")
 
+    @override_settings(WALLET_ALLOW_NEGATIVE_BALANCE=True)
+    def test_debit_wallet_allows_negative_balance_when_enabled_without_threshold(self):
+        user_id = uuid4()
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="10.00")
+
+        updated_wallet = WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="15.00")
+
+        self.assertEqual(updated_wallet.balance, Decimal("-5.00"))
+        transaction_record = WalletTransaction.objects.get(
+            wallet=wallet,
+            transaction_type=WalletTransaction.TransactionType.WITHDRAWAL,
+        )
+        self.assertEqual(transaction_record.balance_before, Decimal("10.00"))
+        self.assertEqual(transaction_record.balance_after, Decimal("-5.00"))
+
+    @override_settings(WALLET_ALLOW_NEGATIVE_BALANCE=True, WALLET_NEGATIVE_BALANCE_THRESHOLD="5.00")
+    def test_debit_wallet_allows_negative_balance_up_to_threshold(self):
+        user_id = uuid4()
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="10.00")
+
+        updated_wallet = WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="15.00")
+
+        self.assertEqual(updated_wallet.balance, Decimal("-5.00"))
+
+    @override_settings(WALLET_ALLOW_NEGATIVE_BALANCE=True, WALLET_NEGATIVE_BALANCE_THRESHOLD="4.99")
+    def test_debit_wallet_rejects_negative_balance_beyond_threshold(self):
+        user_id = uuid4()
+        wallet = create_funded_wallet(user_id=user_id, name="Primary", balance="10.00")
+
+        with self.assertRaises(InsufficientWalletBalanceError):
+            WalletDebitService.debit_wallet(user_id=user_id, wallet_id=wallet.id, amount="15.00")
+
     def test_debit_wallet_rejects_wallet_owned_by_another_user(self):
         owner_id = uuid4()
         another_user_id = uuid4()
@@ -305,6 +337,25 @@ class WalletDebitServiceTests(TestCase):
                 transaction_by=WalletTransaction.TransactionBy.BENEFICIARY,
             ).exists()
         )
+
+    @override_settings(WALLET_ALLOW_NEGATIVE_BALANCE=True, WALLET_NEGATIVE_BALANCE_THRESHOLD="5.00")
+    def test_debit_wallet_for_participant_allows_negative_balance_up_to_threshold(self):
+        owner_id = uuid4()
+        beneficiary_user_id = uuid4()
+        wallet = create_funded_wallet(user_id=owner_id, name="Shared", balance="10.00")
+        WalletBeneficiaryService.add_beneficiary(
+            user_id=owner_id,
+            wallet_id=wallet.id,
+            beneficiary_user_id=beneficiary_user_id,
+        )
+
+        updated_wallet = WalletDebitService.debit_wallet_for_participant(
+            user_id=beneficiary_user_id,
+            wallet_id=wallet.id,
+            amount="15.00",
+        )
+
+        self.assertEqual(updated_wallet.balance, Decimal("-5.00"))
 
     def test_debit_wallet_for_participant_rejects_user_not_attached_to_wallet(self):
         owner_id = uuid4()

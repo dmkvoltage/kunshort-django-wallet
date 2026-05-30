@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from uuid import UUID, uuid4
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q, Sum
@@ -95,6 +96,44 @@ class BaseWalletService:
             raise InvalidWalletSpendingLimitError(code=WalletErrorCode.INVALID_PERCENTAGE_RANGE)
 
         return normalized_percentage
+
+    @staticmethod
+    def get_negative_balance_threshold() -> Decimal | None:
+        threshold = getattr(settings, "WALLET_NEGATIVE_BALANCE_THRESHOLD", None)
+        if threshold in (None, ""):
+            return None
+
+        try:
+            normalized_threshold = Decimal(str(threshold))
+        except (InvalidOperation, ValueError, TypeError) as error:
+            raise InvalidWalletAmountError(code=WalletErrorCode.INVALID_AMOUNT_FORMAT) from error
+
+        normalized_threshold = normalized_threshold.quantize(Decimal("0.01"))
+        if normalized_threshold < Decimal("0.00"):
+            raise InvalidWalletAmountError(code=WalletErrorCode.INVALID_AMOUNT_NEGATIVE)
+
+        return normalized_threshold
+
+    @staticmethod
+    def validate_balance_can_cover_amount(
+        *,
+        balance: Decimal,
+        amount: Decimal,
+        error_code: WalletErrorCode,
+    ) -> None:
+        balance_after = balance - amount
+        if balance_after >= Decimal("0.00"):
+            return
+
+        if not getattr(settings, "WALLET_ALLOW_NEGATIVE_BALANCE", False):
+            raise InsufficientWalletBalanceError(code=error_code)
+
+        negative_balance_threshold = BaseWalletService.get_negative_balance_threshold()
+        if negative_balance_threshold is None:
+            return
+
+        if abs(balance_after) > negative_balance_threshold:
+            raise InsufficientWalletBalanceError(code=error_code)
 
     CURRENCY_CODE_MAX_LENGTH = 20
 
@@ -580,8 +619,11 @@ class WalletDebitService(BaseWalletService):
         wallet = WalletDebitService.get_wallet_for_user(wallet_id=wallet_id, user_id=user_id, for_update=True)
         balance_before = wallet.balance
 
-        if normalized_amount > balance_before:
-            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT)
+        WalletDebitService.validate_balance_can_cover_amount(
+            balance=balance_before,
+            amount=normalized_amount,
+            error_code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT,
+        )
 
         WalletSpendingLimitService.validate_spending_limits(wallet=wallet, amount=normalized_amount)
 
@@ -634,8 +676,11 @@ class WalletDebitService(BaseWalletService):
         )
         balance_before = wallet.balance
 
-        if normalized_amount > balance_before:
-            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT)
+        WalletDebitService.validate_balance_can_cover_amount(
+            balance=balance_before,
+            amount=normalized_amount,
+            error_code=WalletErrorCode.INSUFFICIENT_BALANCE_DEBIT,
+        )
 
         actor_transaction_by = WalletDebitService.get_transaction_by(
             wallet=wallet,
@@ -1520,8 +1565,11 @@ class WalletTransferService(BaseWalletService):
 
         if destination_wallet.id == source_wallet.id:
             raise InvalidWalletTransferError(code=WalletErrorCode.TRANSFER_SOURCE_EQUALS_DESTINATION)
-        if normalized_amount > source_wallet.balance:
-            raise InsufficientWalletBalanceError(code=WalletErrorCode.INSUFFICIENT_BALANCE_TRANSFER)
+        WalletTransferService.validate_balance_can_cover_amount(
+            balance=source_wallet.balance,
+            amount=normalized_amount,
+            error_code=WalletErrorCode.INSUFFICIENT_BALANCE_TRANSFER,
+        )
 
         actor_transaction_by = WalletTransferService.get_transaction_by(
             wallet=source_wallet,

@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.4.1
+# kunshort-django-wallet 1.4.2
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,10 +7,18 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.4.1`
+- Version: `1.4.2`
 - Python import path: `wallets`
 
 ## Changelog
+
+### 1.4.2
+
+- Added opt-in negative wallet balance support through Django settings.
+- New `WALLET_ALLOW_NEGATIVE_BALANCE` setting defaults to `False`, preserving the existing behavior where debits and source-wallet transfers fail when the amount exceeds the current wallet balance.
+- New optional `WALLET_NEGATIVE_BALANCE_THRESHOLD` setting caps the maximum debt when negative balances are enabled. For example, `WALLET_NEGATIVE_BALANCE_THRESHOLD = "100.00"` allows the wallet balance to reach `-100.00` but rejects any debit or source-wallet transfer that would go below that amount.
+- When `WALLET_ALLOW_NEGATIVE_BALANCE = True` and no threshold is configured, owner debits, beneficiary debits, and source-wallet transfers may take the wallet below zero without a package-level debt cap.
+- Added service tests for default rejection, unlimited negative debits, threshold-limited debits, and beneficiary debits against the configured threshold.
 
 ### 1.4.1
 
@@ -64,6 +72,24 @@ Package identity:
 - A `WalletSpendingLimitService` class for wallet and beneficiary spending rules
 - Local development files for migrations, test execution, and optional API exploration
 
+## Possible use cases
+
+This package is useful anywhere an application needs to hold a balance, record movement of value, and enforce clear rules around who can spend from that balance. The currency field is flexible, so a wallet can represent money, credits, points, tokens, internal units, usage allowance, or any other balance your product needs to track.
+
+Common use cases include:
+
+- AI products that sell usage credits for prompts, agents, image generation, audio generation, embeddings, API calls, subscriptions with rollover credits, or postpaid usage with a controlled negative-balance threshold.
+- Jangi, njangi, tontine, contribution groups, savings circles, and rotating savings systems where members contribute, beneficiaries receive payouts, and the system needs auditable deposits, withdrawals, transfers, and spending limits.
+- Marketplaces and commerce platforms where customers, vendors, riders, agents, or merchants need balances for refunds, payouts, commissions, delivery fees, escrow-like flows, or internal settlement.
+- Fintech, banking-adjacent, cooperative, microfinance, and lending systems that need controlled wallet debits, top-ups, beneficiary access, and optional overdraft-style behavior.
+- Loyalty and rewards systems that store points, cashback, vouchers, promotional credits, referral rewards, or merchant-specific balances.
+- Gaming, betting, creator, and entertainment platforms that need coin balances, in-app credits, winnings, creator payouts, or per-user spending controls.
+- SaaS and internal business tools that need account credits, prepaid balances, team budgets, department wallets, spending policies, or usage ledgers.
+- Logistics, field-agent, and operations platforms that need driver wallets, rider cash advances, agent float, expense balances, or controlled debit limits.
+- Education, health, nonprofit, and community platforms that need grants, allowances, sponsor-funded wallets, beneficiary spending controls, or transparent fund movement.
+
+Because the package stores wallet history, transaction status, beneficiary activity, and spending usage separately, it can support both simple consumer wallets and more regulated workflows that need traceable balance changes.
+
 ## Wallet model behavior
 
 - `user_id` is stored as a normalized string identifier
@@ -76,6 +102,25 @@ Package identity:
 - If `name` is omitted during creation, a generated name such as `PrimaryWallet001` is used
 - The first wallet for a user is always created as the default wallet
 - Only one wallet per user can be marked as the default wallet at a time
+
+## Negative balance settings
+
+Negative balances are disabled by default. With no configuration, `WalletDebitService.debit_wallet(...)`, `WalletDebitService.debit_wallet_for_participant(...)`, and `WalletTransferService.transfer_to_beneficiary(...)` raise `InsufficientWalletBalanceError` if the operation would take the source wallet below `0.00`.
+
+To allow wallets to go below zero without a package-level debt cap:
+
+```python
+WALLET_ALLOW_NEGATIVE_BALANCE = True
+```
+
+To allow negative balances only up to a threshold, set the threshold to the maximum allowed debt amount:
+
+```python
+WALLET_ALLOW_NEGATIVE_BALANCE = True
+WALLET_NEGATIVE_BALANCE_THRESHOLD = "100.00"
+```
+
+With that configuration, a wallet can end at `-100.00`, but an operation that would make the balance `-100.01` or lower raises `InsufficientWalletBalanceError`. The threshold is optional and is ignored unless `WALLET_ALLOW_NEGATIVE_BALANCE` is `True`.
 
 ## Data model summary
 
@@ -137,7 +182,7 @@ The packaged library still includes `wallets.admin`, so consumers who add `walle
 To consume the package in another Django project:
 
 ```bash
-pip install kunshort-django-wallet==1.4.1
+pip install kunshort-django-wallet==1.4.2
 ```
 
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.

@@ -1,6 +1,6 @@
 [project]
 name = "kunshort-django-wallet"
-version = "1.4.1"
+version = "1.4.2"
 description = "Django wallet module with wallet models and services"
 readme = "README.md"
 requires-python = ">=3.12"
