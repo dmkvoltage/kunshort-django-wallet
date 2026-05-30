@@ -1,4 +1,4 @@
-# kunshort-django-wallet 1.4.2
+# kunshort-django-wallet 1.5.0
 
 This repository contains a reusable Django app named `wallets` plus a small local-only Django project for development.
 
@@ -7,12 +7,12 @@ The installable package is intended for service consumption: wallet creation, be
 Package identity:
 
 - Distribution name: `kunshort-django-wallet`
-- Version: `1.4.2`
+- Version: `1.5.0`
 - Python import path: `wallets`
 
 ## Changelog
 
-### 1.4.2
+### 1.5.0
 
 - Added opt-in negative wallet balance support through Django settings.
 - New `WALLET_ALLOW_NEGATIVE_BALANCE` setting defaults to `False`, preserving the existing behavior where debits and source-wallet transfers fail when the amount exceeds the current wallet balance.
@@ -182,7 +182,7 @@ The packaged library still includes `wallets.admin`, so consumers who add `walle
 To consume the package in another Django project:
 
 ```bash
-pip install kunshort-django-wallet==1.4.2
+pip install kunshort-django-wallet==1.5.0
 ```
 
 Then add `wallets` to `INSTALLED_APPS`, run migrations, and import the service layer from `wallets.services`.
